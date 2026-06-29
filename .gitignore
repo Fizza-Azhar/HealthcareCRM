@@ -141,3 +141,13 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+# Build folders
+**/bin/
+**/obj/
+
+# Visual Studio Code
+.vscode/
+
+# User files
+*.user
+*.suo
