@@ -8,13 +8,14 @@ namespace HealthcareCRM.API.Controllers;
 public class AuthController : ControllerBase
 {
     [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginRequest request)
+public IActionResult Login([FromBody] LoginRequest request)
+{
+    return Ok(new
     {
-        return Ok(new
-        {
-            message = "Login successful"
-        });
-    }
+        message = "Login successful",
+        token = "dummy-jwt-token-123456"
+    });
+}
 
     [HttpPost("register")]
     public IActionResult Register([FromBody] RegisterRequest request)
