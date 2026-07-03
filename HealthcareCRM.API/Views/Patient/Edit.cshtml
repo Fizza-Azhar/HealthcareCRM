@@ -1,0 +1,129 @@
+@{
+    ViewData["Title"] = "Edit Patient";
+}
+
+<link rel="stylesheet" href="~/css/patient.css" />
+
+<h2>Edit Patient</h2>
+
+<form id="editForm">
+
+    <input type="hidden" id="id" />
+
+    <div>
+        <label>First Name</label><br />
+        <input type="text" id="firstName" required />
+    </div>
+
+    <br />
+
+    <div>
+        <label>Last Name</label><br />
+        <input type="text" id="lastName" required />
+    </div>
+
+    <br />
+
+    <div>
+        <label>Age</label><br />
+        <input type="number" id="age" required />
+    </div>
+
+    <br />
+
+    <div>
+        <label>Gender</label><br />
+        <input type="text" id="gender" required />
+    </div>
+
+    <br />
+
+    <div>
+        <label>Phone Number</label><br />
+        <input type="text" id="phoneNumber" />
+    </div>
+
+    <br />
+
+    <div>
+        <label>Email</label><br />
+        <input type="email" id="email" />
+    </div>
+
+    <br />
+
+    <button type="submit">Update Patient</button>
+
+</form>
+<script>
+
+const params = new URLSearchParams(window.location.search);
+
+const patientId = params.get("id");
+
+async function loadPatient() {
+
+    const response = await fetch(`/api/patients/${patientId}`);
+
+    const patient = await response.json();
+
+    document.getElementById("id").value = patient.id;
+    document.getElementById("firstName").value = patient.firstName;
+    document.getElementById("lastName").value = patient.lastName;
+    document.getElementById("age").value = patient.age;
+    document.getElementById("gender").value = patient.gender;
+    document.getElementById("phoneNumber").value = patient.phoneNumber;
+    document.getElementById("email").value = patient.email;
+}
+
+loadPatient();
+document.getElementById("editForm").addEventListener("submit", async function (event) {
+
+    event.preventDefault();
+
+    const patient = {
+
+        id: parseInt(document.getElementById("id").value),
+
+        firstName: document.getElementById("firstName").value,
+
+        lastName: document.getElementById("lastName").value,
+
+        age: parseInt(document.getElementById("age").value),
+
+        gender: document.getElementById("gender").value,
+
+        phoneNumber: document.getElementById("phoneNumber").value,
+
+        email: document.getElementById("email").value
+
+    };
+
+    const response = await fetch(`/api/patients/${patient.id}`, {
+
+        method: "PUT",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify(patient)
+
+    });
+
+    if (response.ok) {
+
+        alert("Patient updated successfully.");
+
+        window.location.href = "/Patient";
+
+    }
+    else {
+
+        alert("Failed to update patient.");
+
+    }
+
+});
+
+</script>
