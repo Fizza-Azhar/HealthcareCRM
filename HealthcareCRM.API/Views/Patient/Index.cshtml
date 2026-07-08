@@ -6,7 +6,12 @@
 
 
 <h2>Patient List</h2>
+<input type="text" id="searchBox" placeholder="Search by name or phone" />
 
+<button onclick="loadPatients()">Search</button>
+
+<br />
+<br />
 <a href="/Patient/Create">Add New Patient</a>
 
 <br />
@@ -37,8 +42,9 @@
         window.location.href = "/Account/Login";
     }
     async function loadPatients() {
+    const search = document.getElementById("searchBox").value;
 
-    const response = await fetch("/api/patients");
+    const response = await fetch(`/api/patients?search=${search}`);
 
     const patients = await response.json();
 

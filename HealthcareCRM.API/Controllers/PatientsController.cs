@@ -16,10 +16,31 @@ namespace HealthcareCRM.API.Controllers
             _context = context;
         }
         // GET: api/patients
+// GET: api/patients
+// GET: api/patients
 [HttpGet]
-public async Task<ActionResult<IEnumerable<Patient>>> GetPatients()
+public async Task<ActionResult<IEnumerable<Patient>>> GetPatients(
+    string? search,
+    int page = 1,
+    int pageSize = 20)
 {
-    return await _context.Patients.ToListAsync();
+    var query = _context.Patients.AsQueryable();
+
+    // Search
+    if (!string.IsNullOrWhiteSpace(search))
+    {
+        query = query.Where(p =>
+            p.FirstName.Contains(search) ||
+            p.LastName.Contains(search) ||
+            p.PhoneNumber.Contains(search));
+    }
+
+    // Pagination
+    query = query
+        .Skip((page - 1) * pageSize)
+        .Take(pageSize);
+
+    return await query.ToListAsync();
 }
 // GET: api/patients/1
 [HttpGet("{id}")]
