@@ -1,0 +1,67 @@
+@{
+    ViewData["Title"] = "Doctor List";
+}
+
+<link rel="stylesheet" href="~/css/patient.css" />
+
+<h2>Doctor List</h2>
+<p class="page-subtitle">Active doctors currently registered in the system.</p>
+
+<div class="table-card">
+    <table id="doctorsTable">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Specialization</th>
+                <th>Phone</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "/Account/Login";
+    }
+
+    async function loadDoctors() {
+
+        const response = await fetch("/api/doctors");
+
+        const doctors = await response.json();
+
+        const tableBody = document.querySelector("#doctorsTable tbody");
+
+        tableBody.innerHTML = "";
+
+        if (doctors.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="empty-state">
+                        No active doctors found.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        doctors.forEach(doctor => {
+
+            tableBody.innerHTML += `
+<tr>
+    <td>${doctor.id}</td>
+    <td>${doctor.name}</td>
+    <td>${doctor.specialization}</td>
+    <td>${doctor.phone}</td>
+</tr>
+`;
+        });
+    }
+
+    loadDoctors();
+</script>
