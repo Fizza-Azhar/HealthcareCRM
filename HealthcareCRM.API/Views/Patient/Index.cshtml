@@ -5,41 +5,37 @@
 <link rel="stylesheet" href="~/css/patient.css" />
 
 <h2>Patient List</h2>
+<p class="page-subtitle">View, search, and manage registered patients.</p>
 
-<input type="text" id="searchBox" placeholder="Search by name or phone" />
+<div class="toolbar">
+    <input type="text" id="searchBox" placeholder="Search by name or phone" />
+    <a class="btn-add" href="/Patient/Create">+ Add New Patient</a>
+</div>
 
-<br />
-<br />
+<div class="table-card">
+    <table id="patientsTable">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
 
-<a href="/Patient/Create">Add New Patient</a>
-
-<br />
-<br />
-
-<table id="patientsTable">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Age</th>
-            <th>Gender</th>
-            <th>Phone</th>
-            <th>Email</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-
-    <tbody>
-    </tbody>
-</table>
-<br />
-
-<button onclick="previousPage()">Previous</button>
-
-<span id="pageNumber">Page 1</span>
-
-<button onclick="nextPage()">Next</button>
+<div class="pagination">
+    <button onclick="previousPage()">Previous</button>
+    <span id="pageNumber">Page 1</span>
+    <button onclick="nextPage()">Next</button>
+</div>
 
 <script>
     const token = localStorage.getItem("token");
@@ -63,15 +59,15 @@
 
         tableBody.innerHTML = "";
         if (patients.length === 0) {
-    tableBody.innerHTML = `
-        <tr>
-            <td colspan="8" style="text-align:center;">
-                No patients found.
-            </td>
-        </tr>
-    `;
-    return;
-}
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="empty-state">
+                        No patients found.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
 
         patients.forEach(patient => {
 
@@ -85,6 +81,7 @@
     <td>${patient.phoneNumber}</td>
     <td>${patient.email}</td>
     <td>
+        <button onclick="viewPatient(${patient.id})">View</button>
         <button onclick="editPatient(${patient.id})">Edit</button>
         <button onclick="deletePatient(${patient.id})">Delete</button>
     </td>
@@ -105,7 +102,9 @@
 
         loadPatients();
     }
-
+    function viewPatient(id) {
+    window.location.href = "/Patient/Details?id=" + id;
+}
     function editPatient(id) {
 
         window.location.href = "/Patient/Edit?id=" + id;
@@ -114,27 +113,27 @@
 
     // Search automatically while typing
     document.getElementById("searchBox").addEventListener("keyup", function () {
-    loadPatients(1);
-});
+        loadPatients(1);
+    });
 
-// Next Page
-function nextPage() {
-    currentPage++;
-    document.getElementById("pageNumber").innerText = "Page " + currentPage;
-    loadPatients(currentPage);
-}
-
-// Previous Page
-function previousPage() {
-
-    if (currentPage > 1) {
-        currentPage--;
+    // Next Page
+    function nextPage() {
+        currentPage++;
         document.getElementById("pageNumber").innerText = "Page " + currentPage;
         loadPatients(currentPage);
     }
-}
 
-// Load first page
-loadPatients();
+    // Previous Page
+    function previousPage() {
+
+        if (currentPage > 1) {
+            currentPage--;
+            document.getElementById("pageNumber").innerText = "Page " + currentPage;
+            loadPatients(currentPage);
+        }
+    }
+
+    // Load first page
+    loadPatients();
 
 </script>

@@ -18,5 +18,9 @@ namespace HealthcareCRM.API.Controllers
         {
             return View();
         }
+         public IActionResult Details()   // ← add this
+        {
+            return View();
+        }
     }
 }

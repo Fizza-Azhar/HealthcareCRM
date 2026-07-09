@@ -1,0 +1,74 @@
+@{
+    ViewData["Title"] = "Patient Details";
+}
+
+<link rel="stylesheet" href="~/css/patient.css" />
+
+<div class="form-page-wrapper">
+    <div class="form-page-inner">
+
+        <h2>Patient Details</h2>
+        <p class="page-subtitle">Full profile for this patient.</p>
+
+        <div class="table-card" style="padding: 24px;">
+            <div class="form-grid">
+                <div>
+                    <label>First Name</label>
+                    <p id="firstName"></p>
+                </div>
+
+                <div>
+                    <label>Last Name</label>
+                    <p id="lastName"></p>
+                </div>
+
+                <div>
+                    <label>Age</label>
+                    <p id="age"></p>
+                </div>
+
+                <div>
+                    <label>Gender</label>
+                    <p id="gender"></p>
+                </div>
+
+                <div>
+                    <label>Phone Number</label>
+                    <p id="phoneNumber"></p>
+                </div>
+
+                <div>
+                    <label>Email</label>
+                    <p id="email"></p>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a class="btn-add" href="#" id="editLink">Edit Patient</a>
+                <a class="btn-cancel" href="/Patient">Back to List</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const patientId = params.get("id");
+
+    async function loadPatient() {
+        const response = await fetch(`/api/patients/${patientId}`);
+        const patient = await response.json();
+
+        document.getElementById("firstName").innerText = patient.firstName;
+        document.getElementById("lastName").innerText = patient.lastName;
+        document.getElementById("age").innerText = patient.age;
+        document.getElementById("gender").innerText = patient.gender;
+        document.getElementById("phoneNumber").innerText = patient.phoneNumber;
+        document.getElementById("email").innerText = patient.email;
+
+        document.getElementById("editLink").href = "/Patient/Edit?id=" + patient.id;
+    }
+
+    loadPatient();
+</script>
