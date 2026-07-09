@@ -1,41 +1,42 @@
 @{
     ViewData["Title"] = "Register";
 }
+
 <link rel="stylesheet" href="~/css/register.css" />
-<h2>Register</h2>
 
-<form id="registerForm">
-    <div>
-        <label>First Name</label><br />
-        <input type="text" id="firstName" required />
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <h2>Create account</h2>
+        <p class="auth-subtitle">Set up access to the patient system</p>
+
+        <form id="registerForm">
+            <div>
+                <label>First Name</label><br />
+                <input type="text" id="firstName" required />
+            </div>
+
+            <div>
+                <label>Last Name</label><br />
+                <input type="text" id="lastName" required />
+            </div>
+
+            <div>
+                <label>Email</label><br />
+                <input type="email" id="email" required />
+            </div>
+
+            <div>
+                <label>Password</label><br />
+                <input type="password" id="password" required />
+            </div>
+
+            <button type="submit">Register</button>
+        </form>
+
+        <p id="message"></p>
     </div>
+</div>
 
-    <br />
-
-    <div>
-        <label>Last Name</label><br />
-        <input type="text" id="lastName" required />
-    </div>
-
-    <br />
-
-    <div>
-        <label>Email</label><br />
-        <input type="email" id="email" required />
-    </div>
-
-    <br />
-
-    <div>
-        <label>Password</label><br />
-        <input type="password" id="password" required />
-    </div>
-
-    <br />
-
-    <button type="submit">Register</button>
-    <p id="message"></p>
-</form>
 <script>
 
 document.getElementById("registerForm").addEventListener("submit", async function (event) {

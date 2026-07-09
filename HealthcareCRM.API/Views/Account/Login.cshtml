@@ -4,29 +4,33 @@
 
 <link rel="stylesheet" href="~/css/login.css" />
 
-<h2>Login</h2>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <h2>Welcome back</h2>
+        <p class="auth-subtitle">Sign in to manage your patients</p>
 
-<form id="loginForm">
+        <form id="loginForm">
+            <div>
+                <label>Email</label><br />
+                <input type="email" id="email" required />
+            </div>
 
-    <div>
-        <label>Email</label><br />
-        <input type="email" id="email" required />
+            <div>
+                <label>Password</label><br />
+                <input type="password" id="password" required />
+            </div>
+
+            <button type="submit">Login</button>
+        </form>
+
+        <p id="message"></p>
+
+        <div class="auth-footer">
+            Don't have an account? <a href="/Account/Register">Register</a>
+        </div>
     </div>
+</div>
 
-    <br />
-
-    <div>
-        <label>Password</label><br />
-        <input type="password" id="password" required />
-    </div>
-
-    <br />
-
-    <button type="submit">Login</button>
-
-</form>
-
-<p id="message"></p>
 <script>
 
 document.getElementById("loginForm").addEventListener("submit", async function (event) {

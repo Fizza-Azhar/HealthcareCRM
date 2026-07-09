@@ -1,10 +1,39 @@
+:root {
+    --primary: #2563a8;
+    --primary-dark: #1e4f87;
+    --bg: #f4f6f9;
+    --surface: #ffffff;
+    --border: #cbd2d9;
+    --text: #1f2937;
+    --text-muted: #6b7280;
+    --danger: #dc3545;
+    --radius: 8px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
 body {
-    margin: 20px;
-    background-color: #f8f9fa;
-    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 24px 32px;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", Arial, sans-serif;
 }
 
 h1,
 h2 {
+    font-weight: 600;
+    letter-spacing: -0.3px;
     margin-bottom: 20px;
+}
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
 }

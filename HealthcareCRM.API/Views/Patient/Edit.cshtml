@@ -4,57 +4,63 @@
 
 <link rel="stylesheet" href="~/css/patient.css" />
 
-<h2>Edit Patient</h2>
+<div class="form-page-wrapper">
+    <div class="form-page-inner">
 
-<form id="editForm">
+        <h2>Edit Patient</h2>
+        <p class="page-subtitle">Update this patient's information.</p>
 
-    <input type="hidden" id="id" />
+        <form id="editForm">
 
-    <div>
-        <label>First Name</label><br />
-        <input type="text" id="firstName" required />
+            <input type="hidden" id="id" />
+
+            <div class="form-grid">
+                <div>
+                    <label>First Name</label><br />
+                    <input type="text" id="firstName" required />
+                </div>
+
+                <div>
+                    <label>Last Name</label><br />
+                    <input type="text" id="lastName" required />
+                </div>
+
+                <div>
+                    <label>Age</label><br />
+                    <input type="number" id="age" required />
+                </div>
+
+                <div>
+                    <label>Gender</label><br />
+                    <select id="gender" required>
+                        <option value="" disabled>Select gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Phone Number</label><br />
+                    <input type="text" id="phoneNumber" />
+                </div>
+
+                <div>
+                    <label>Email</label><br />
+                    <input type="email" id="email" />
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit">Update Patient</button>
+                <a class="btn-cancel" href="/Patient">Cancel</a>
+            </div>
+
+        </form>
+
     </div>
+</div>
 
-    <br />
-
-    <div>
-        <label>Last Name</label><br />
-        <input type="text" id="lastName" required />
-    </div>
-
-    <br />
-
-    <div>
-        <label>Age</label><br />
-        <input type="number" id="age" required />
-    </div>
-
-    <br />
-
-    <div>
-        <label>Gender</label><br />
-        <input type="text" id="gender" required />
-    </div>
-
-    <br />
-
-    <div>
-        <label>Phone Number</label><br />
-        <input type="text" id="phoneNumber" />
-    </div>
-
-    <br />
-
-    <div>
-        <label>Email</label><br />
-        <input type="email" id="email" />
-    </div>
-
-    <br />
-
-    <button type="submit">Update Patient</button>
-
-</form>
 <script>
 
 const params = new URLSearchParams(window.location.search);

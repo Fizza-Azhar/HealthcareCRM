@@ -4,55 +4,59 @@
 
 <link rel="stylesheet" href="~/css/patient.css" />
 
-<h2>Add Patient</h2>
+<div class="form-page-wrapper">
+    <div class="form-page-inner">
 
-<form id="createForm">
+        <h2>Add Patient</h2>
+        <p class="page-subtitle">Register a new patient in the system.</p>
 
-    <div>
-        <label>First Name</label><br />
-        <input type="text" id="firstName" required />
+        <form id="createForm">
+            <div class="form-grid">
+                <div>
+                    <label>First Name</label><br />
+                    <input type="text" id="firstName" required />
+                </div>
+
+                <div>
+                    <label>Last Name</label><br />
+                    <input type="text" id="lastName" required />
+                </div>
+
+                <div>
+                    <label>Age</label><br />
+                    <input type="number" id="age" required />
+                </div>
+
+                <div>
+                    <label>Gender</label><br />
+                    <select id="gender" required>
+                        <option value="" disabled selected>Select gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Phone Number</label><br />
+                    <input type="text" id="phoneNumber" required />
+                </div>
+
+                <div>
+                    <label>Email</label><br />
+                    <input type="email" id="email" required />
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit">Save Patient</button>
+                <a class="btn-cancel" href="/Patient">Cancel</a>
+            </div>
+        </form>
+
     </div>
+</div>
 
-    <br />
-
-    <div>
-        <label>Last Name</label><br />
-        <input type="text" id="lastName" required />
-    </div>
-
-    <br />
-
-    <div>
-        <label>Age</label><br />
-        <input type="number" id="age" required />
-    </div>
-
-    <br />
-
-    <div>
-        <label>Gender</label><br />
-        <input type="text" id="gender" required />
-    </div>
-
-    <br />
-
-    <div>
-        <label>Phone Number</label><br />
-        <input type="text" id="phoneNumber" required />
-    </div>
-
-    <br />
-
-    <div>
-        <label>Email</label><br />
-        <input type="email" id="email" required />
-    </div>
-
-    <br />
-
-    <button type="submit">Save Patient</button>
-
-</form>
 <script>
 
 document.getElementById("createForm").addEventListener("submit", async function (event) {
