@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Healthcare CRM is a web application developed using ASP.NET Core MVC. It allows users to manage patient records through a simple and user-friendly interface. The application includes authentication pages, patient management (CRUD operations), and SQL Server database integration.
+Healthcare CRM is a web application developed using ASP.NET Core MVC. It allows users to manage patient and doctor records through a simple and user-friendly interface. The application includes authentication pages, patient management (full CRUD), a doctor directory, and SQL Server database integration via Entity Framework Core.
 
 ---
 
@@ -10,11 +10,14 @@ Healthcare CRM is a web application developed using ASP.NET Core MVC. It allows 
 
 - User Login
 - User Registration
-- Patient Management (CRUD)
+- Patient Management (Full CRUD)
   - Add Patient
-  - View Patient List
+  - View Patient List (with search and pagination)
+  - View Patient Details (full profile)
   - Edit Patient
   - Delete Patient
+- Doctor Directory (Read-only)
+  - View Doctor List (active doctors only)
 - SQL Server Database Integration
 - Entity Framework Core
 - Authentication Token stored in Local Storage
@@ -62,13 +65,9 @@ Database Name:
 HealthcareCRM
 ```
 
-Main Table:
+Tables:
 
-```
-Patients
-```
-
-Columns:
+### Patients
 
 - Id
 - FirstName
@@ -78,14 +77,27 @@ Columns:
 - PhoneNumber
 - Email
 
+### Doctors
+
+- Id
+- Name
+- Specialization
+- Phone
+- IsActive
+
 ---
 
 ## Patient CRUD Operations
 
 - Create Patient
-- Read Patient List
+- Read Patient List (search by name/phone, paginated)
+- Read Patient Details (full profile view)
 - Update Patient
 - Delete Patient
+
+## Doctor Operations
+
+- Read Doctor List (active doctors only; full CRUD planned for Week 3)
 
 ---
 
@@ -108,11 +120,21 @@ Columns:
 
 ### Patients
 
-- GET `/api/patients`
+- GET `/api/patients` — supports `search`, `page`, `pageSize` query params
 - GET `/api/patients/{id}`
 - POST `/api/patients`
 - PUT `/api/patients/{id}`
 - DELETE `/api/patients/{id}`
+
+### Doctors
+
+- GET `/api/doctors` — returns active doctors only
+
+---
+
+## UI
+
+The application uses a consistent design system across all pages (login, register, patient management, and doctor directory): a shared color palette, card-based layouts, and centered forms, defined in `wwwroot/css/site.css` and `wwwroot/css/patient.css`.
 
 ---
 
@@ -124,6 +146,7 @@ The project includes:
 - Bug Tracking Sheet
 - Authentication Test Cases
 - Patient CRUD Test Cases
+- Doctor List Test Cases
 
 ---
 
