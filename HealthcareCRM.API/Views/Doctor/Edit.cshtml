@@ -1,0 +1,83 @@
+@{
+    ViewData["Title"] = "Edit Doctor";
+}
+
+<link rel="stylesheet" href="~/css/patient.css" />
+
+<h2>Edit Doctor</h2>
+
+<div class="table-card">
+    <form id="editDoctorForm">
+        <input type="hidden" id="doctorId" />
+
+        <label>Name</label>
+        <input type="text" id="name" required />
+
+        <label>Specialization</label>
+        <input type="text" id="specialization" required />
+
+        <label>Phone</label>
+        <input type="text" id="phone" required />
+
+        <label>Schedule Days</label>
+        <input type="text" id="scheduleDays" required />
+
+        <button type="submit" class="btn-primary">Update Doctor</button>
+        <p id="errorMsg" class="error-text"></p>
+    </form>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const doctorId = urlParams.get("id");
+
+    async function loadDoctor() {
+        const response = await fetch(`/api/doctors/${doctorId}`);
+        const result = await response.json();
+
+        if (!response.ok) {
+            document.getElementById("errorMsg").textContent = "Doctor not found.";
+            return;
+        }
+
+        const doctor = result.data;
+        document.getElementById("doctorId").value = doctor.id;
+        document.getElementById("name").value = doctor.name;
+        document.getElementById("specialization").value = doctor.specialization;
+        document.getElementById("phone").value = doctor.phone;
+        document.getElementById("scheduleDays").value = doctor.scheduleDays;
+    }
+
+    const form = document.getElementById("editDoctorForm");
+    const errorMsg = document.getElementById("errorMsg");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorMsg.textContent = "";
+
+        const updated = {
+            id: parseInt(doctorId),
+            name: document.getElementById("name").value,
+            specialization: document.getElementById("specialization").value,
+            phone: document.getElementById("phone").value,
+            scheduleDays: document.getElementById("scheduleDays").value
+        };
+
+        const response = await fetch(`/api/doctors/${doctorId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updated)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            errorMsg.textContent = result.message || "Failed to update doctor.";
+            return;
+        }
+
+        window.location.href = "/Doctor/Index";
+    });
+
+    loadDoctor();
+</script>
