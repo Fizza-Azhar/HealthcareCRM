@@ -1,0 +1,58 @@
+@{
+    ViewData["Title"] = "Add Doctor";
+}
+
+<link rel="stylesheet" href="~/css/patient.css" />
+
+<h2>Add Doctor</h2>
+
+<div class="table-card">
+    <form id="createDoctorForm">
+        <label>Name</label>
+        <input type="text" id="name" required />
+
+        <label>Specialization</label>
+        <input type="text" id="specialization" required />
+
+        <label>Phone</label>
+        <input type="text" id="phone" required />
+
+        <label>Schedule Days</label>
+        <input type="text" id="scheduleDays" placeholder="e.g. Mon,Wed,Fri" required />
+
+        <button type="submit" class="btn-primary">Save Doctor</button>
+        <p id="errorMsg" class="error-text"></p>
+    </form>
+</div>
+
+<script>
+    const form = document.getElementById("createDoctorForm");
+    const errorMsg = document.getElementById("errorMsg");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorMsg.textContent = "";
+
+        const doctor = {
+            name: document.getElementById("name").value,
+            specialization: document.getElementById("specialization").value,
+            phone: document.getElementById("phone").value,
+            scheduleDays: document.getElementById("scheduleDays").value
+        };
+
+        const response = await fetch("/api/doctors", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(doctor)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            errorMsg.textContent = result.message || "Failed to create doctor.";
+            return;
+        }
+
+        window.location.href = "/Doctor/Index";
+    });
+</script>

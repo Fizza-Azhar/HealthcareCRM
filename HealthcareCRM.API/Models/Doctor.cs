@@ -16,6 +16,9 @@ namespace HealthcareCRM.API.Models
         [Phone]
         public string Phone { get; set; } = "";
 
+        [Required]
+        public string ScheduleDays { get; set; } = ""; // e.g. "Mon,Wed,Fri"
+
         public bool IsActive { get; set; } = true;
     }
 }
