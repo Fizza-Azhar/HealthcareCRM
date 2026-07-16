@@ -1,0 +1,129 @@
+@{
+    ViewData["Title"] = "Book Appointment";
+}
+
+<link rel="stylesheet" href="~/css/patient.css" />
+
+<div class="form-page-wrapper">
+    <div class="form-page-inner">
+        <h2>Book Appointment</h2>
+        <p class="page-subtitle">Select a patient, doctor, and appointment time.</p>
+
+        <form id="bookAppointmentForm">
+            <div class="form-grid">
+                <div class="full-width">
+                    <label>Patient</label>
+                    <select id="patientId" required>
+                        <option value="">Select a patient...</option>
+                    </select>
+                </div>
+
+                <div class="full-width">
+                    <label>Doctor</label>
+                    <select id="doctorId" required>
+                        <option value="">Select a doctor...</option>
+                    </select>
+                </div>
+
+                <div class="full-width">
+                    <label>Date & Time</label>
+                    <input type="datetime-local" id="dateTime" required />
+                </div>
+
+                <div class="full-width">
+                    <label>Notes</label>
+                    <input type="text" id="notes" placeholder="Optional notes..." />
+                </div>
+
+                <div class="full-width">
+                    <p id="errorMsg" style="color: var(--danger);"></p>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit">Book Appointment</button>
+                <a href="/Appointment/Index" class="btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "/Account/Login";
+    }
+
+    async function loadPatients() {
+    const response = await fetch("/api/patients?pageSize=1000", {
+        headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+        document.getElementById("errorMsg").textContent = "Failed to load patients.";
+        return;
+    }
+
+    const patients = await response.json(); // raw array, not wrapped
+
+    const select = document.getElementById("patientId");
+    patients.forEach(p => {
+        const option = document.createElement("option");
+        option.value = p.id;
+        option.textContent = `${p.firstName} ${p.lastName}`;
+        select.appendChild(option);
+    });
+}
+    async function loadDoctors() {
+        const response = await fetch("/api/doctors", {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const result = await response.json();
+        const doctors = result.data || [];
+
+        const select = document.getElementById("doctorId");
+        doctors.forEach(d => {
+            const option = document.createElement("option");
+            option.value = d.id;
+            option.textContent = `${d.name} (${d.specialization})`;
+            select.appendChild(option);
+        });
+    }
+
+    const form = document.getElementById("bookAppointmentForm");
+    const errorMsg = document.getElementById("errorMsg");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorMsg.textContent = "";
+
+        const appointment = {
+            patientId: parseInt(document.getElementById("patientId").value),
+            doctorId: parseInt(document.getElementById("doctorId").value),
+            dateTime: document.getElementById("dateTime").value,
+            notes: document.getElementById("notes").value
+        };
+
+        const response = await fetch("/api/appointments", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify(appointment)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            errorMsg.textContent = result.message || "Failed to book appointment.";
+            return;
+        }
+
+        window.location.href = "/Appointment/Index";
+    });
+
+    loadPatients();
+    loadDoctors();
+</script>

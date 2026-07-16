@@ -1,13 +1,17 @@
 :root {
     --primary: #2563a8;
     --primary-dark: #1e4f87;
+    --primary-light: #eaf2fb;
     --bg: #f4f6f9;
     --surface: #ffffff;
     --border: #cbd2d9;
     --text: #1f2937;
     --text-muted: #6b7280;
     --danger: #dc3545;
-    --radius: 8px;
+    --success: #1a7a5e;
+    --success-light: #e8f5f0;
+    --radius: 10px;
+    --radius-pill: 24px;
 }
 
 * {
@@ -22,11 +26,9 @@ body {
     font-family: "Segoe UI", Arial, sans-serif;
 }
 
-h1,
-h2 {
-    font-weight: 600;
-    letter-spacing: -0.3px;
-    margin-bottom: 20px;
+h1, h2 {
+    font-weight: 700;
+    letter-spacing: -0.4px;
 }
 
 a {
@@ -37,61 +39,75 @@ a {
 a:hover {
     text-decoration: underline;
 }
-/* Home page hero */
+
+/* Home page hero — split layout */
 .hero-wrapper {
     display: flex;
-    justify-content: center;
     align-items: center;
-    min-height: 75vh;
+    justify-content: space-between;
+    gap: 48px;
+    min-height: 70vh;
+    max-width: 1100px;
+    margin: 0 auto;
+    flex-wrap: wrap;
 }
 
-.hero-card {
-    width: 100%;
-    max-width: 600px;
-    text-align: center;
-    background-color: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 48px 40px;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+.hero-left {
+    flex: 1 1 420px;
+    min-width: 320px;
 }
 
-.hero-card h1 {
-    font-size: 28px;
+.hero-eyebrow {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     margin-bottom: 8px;
+}
+
+.hero-left h1 {
+    font-size: 36px;
+    line-height: 1.25;
+    margin: 0 0 16px 0;
+    color: var(--text);
 }
 
 .hero-subtitle {
     color: var(--text-muted);
-    font-size: 15px;
+    font-size: 16px;
+    line-height: 1.6;
     margin-bottom: 32px;
+    max-width: 480px;
 }
 
 .hero-actions {
     display: flex;
-    justify-content: center;
-    gap: 12px;
+    gap: 14px;
     flex-wrap: wrap;
 }
 
 .hero-btn {
     display: inline-block;
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
+    padding: 13px 26px;
+    border-radius: var(--radius-pill);
+    font-size: 14.5px;
+    font-weight: 600;
     text-decoration: none;
+    transition: background-color 0.15s ease, transform 0.1s ease;
 }
 
 .hero-btn-primary {
     background-color: var(--primary);
     color: #fff;
+    box-shadow: 0 2px 8px rgba(37, 99, 168, 0.3);
 }
 
 .hero-btn-primary:hover {
     background-color: var(--primary-dark);
     color: #fff;
     text-decoration: none;
+    transform: translateY(-1px);
 }
 
 .hero-btn-secondary {
@@ -103,4 +119,87 @@ a:hover {
 .hero-btn-secondary:hover {
     background-color: #f1f3f5;
     text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.hero-right {
+    flex: 1 1 320px;
+    min-width: 280px;
+    max-width: 400px;
+}
+
+.hero-right svg {
+    width: 100%;
+    height: auto;
+}
+
+/* Benefits section */
+.benefits-section {
+    max-width: 1100px;
+    margin: 60px auto 0 auto;
+    padding-top: 48px;
+    border-top: 1px solid var(--border);
+}
+
+.benefits-title {
+    text-align: center;
+    font-size: 26px;
+    margin-bottom: 36px;
+    color: var(--text);
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+}
+
+.benefit-card {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 22px;
+    box-shadow: 0 2px 8px rgba(16, 24, 40, 0.05);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.benefit-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(16, 24, 40, 0.08);
+}
+
+.benefit-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 14px;
+}
+
+.benefit-icon-blue {
+    background-color: var(--primary-light);
+}
+
+.benefit-icon-green {
+    background-color: var(--success-light);
+}
+
+.benefit-icon-yellow {
+    background-color: #fff8e1;
+}
+
+.benefit-card h3 {
+    font-size: 15px;
+    margin: 0 0 8px 0;
+    color: var(--text);
+}
+
+.benefit-card p {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin: 0;
 }
