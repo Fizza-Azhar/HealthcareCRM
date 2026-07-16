@@ -51,11 +51,26 @@
 
         const search = document.getElementById("searchBox").value;
 
-        const response = await fetch(`/api/patients?search=${search}&page=${currentPage}&pageSize=${pageSize}`);
-
-        const patients = await response.json();
+        const response = await fetch(`/api/patients?search=${search}&page=${currentPage}&pageSize=${pageSize}`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
 
         const tableBody = document.querySelector("#patientsTable tbody");
+
+        if (!response.ok) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="empty-state">
+                        Failed to load patients. Please try again.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        const patients = await response.json();
 
         tableBody.innerHTML = "";
         if (patients.length === 0) {
@@ -70,7 +85,6 @@
         }
 
         patients.forEach(patient => {
-
             tableBody.innerHTML += `
 <tr>
     <td>${patient.id}</td>
@@ -91,41 +105,39 @@
     }
 
     async function deletePatient(id) {
-
         if (!confirm("Are you sure you want to delete this patient?")) {
             return;
         }
 
         await fetch(`/api/patients/${id}`, {
-            method: "DELETE"
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
         });
 
         loadPatients();
     }
+
     function viewPatient(id) {
-    window.location.href = "/Patient/Details?id=" + id;
-}
-    function editPatient(id) {
-
-        window.location.href = "/Patient/Edit?id=" + id;
-
+        window.location.href = "/Patient/Details?id=" + id;
     }
 
-    // Search automatically while typing
+    function editPatient(id) {
+        window.location.href = "/Patient/Edit?id=" + id;
+    }
+
     document.getElementById("searchBox").addEventListener("keyup", function () {
         loadPatients(1);
     });
 
-    // Next Page
     function nextPage() {
         currentPage++;
         document.getElementById("pageNumber").innerText = "Page " + currentPage;
         loadPatients(currentPage);
     }
 
-    // Previous Page
     function previousPage() {
-
         if (currentPage > 1) {
             currentPage--;
             document.getElementById("pageNumber").innerText = "Page " + currentPage;
@@ -133,7 +145,5 @@
         }
     }
 
-    // Load first page
     loadPatients();
-
 </script>

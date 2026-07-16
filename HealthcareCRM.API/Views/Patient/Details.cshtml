@@ -53,11 +53,27 @@
 </div>
 
 <script>
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "/Account/Login";
+    }
+
     const params = new URLSearchParams(window.location.search);
     const patientId = params.get("id");
 
     async function loadPatient() {
-        const response = await fetch(`/api/patients/${patientId}`);
+        const response = await fetch(`/api/patients/${patientId}`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            alert("Failed to load patient details.");
+            return;
+        }
+
         const patient = await response.json();
 
         document.getElementById("firstName").innerText = patient.firstName;

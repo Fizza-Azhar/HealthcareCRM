@@ -4,11 +4,13 @@ using HealthcareCRM.API.Data;
 using HealthcareCRM.API.Models;
 using HealthcareCRM.API.Helpers;
 using HealthcareCRM.API.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HealthcareCRM.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class AppointmentsController : ControllerBase
     {
         private readonly AppDbContext _context;

@@ -62,74 +62,67 @@
 </div>
 
 <script>
+    const token = localStorage.getItem("token");
 
-const params = new URLSearchParams(window.location.search);
+    if (!token) {
+        window.location.href = "/Account/Login";
+    }
 
-const patientId = params.get("id");
+    const params = new URLSearchParams(window.location.search);
+    const patientId = params.get("id");
 
-async function loadPatient() {
+    async function loadPatient() {
+        const response = await fetch(`/api/patients/${patientId}`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
 
-    const response = await fetch(`/api/patients/${patientId}`);
+        if (!response.ok) {
+            alert("Failed to load patient.");
+            return;
+        }
 
-    const patient = await response.json();
+        const patient = await response.json();
 
-    document.getElementById("id").value = patient.id;
-    document.getElementById("firstName").value = patient.firstName;
-    document.getElementById("lastName").value = patient.lastName;
-    document.getElementById("age").value = patient.age;
-    document.getElementById("gender").value = patient.gender;
-    document.getElementById("phoneNumber").value = patient.phoneNumber;
-    document.getElementById("email").value = patient.email;
-}
+        document.getElementById("id").value = patient.id;
+        document.getElementById("firstName").value = patient.firstName;
+        document.getElementById("lastName").value = patient.lastName;
+        document.getElementById("age").value = patient.age;
+        document.getElementById("gender").value = patient.gender;
+        document.getElementById("phoneNumber").value = patient.phoneNumber;
+        document.getElementById("email").value = patient.email;
+    }
 
-loadPatient();
-document.getElementById("editForm").addEventListener("submit", async function (event) {
+    loadPatient();
 
-    event.preventDefault();
+    document.getElementById("editForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
 
-    const patient = {
+        const patient = {
+            id: parseInt(document.getElementById("id").value),
+            firstName: document.getElementById("firstName").value,
+            lastName: document.getElementById("lastName").value,
+            age: parseInt(document.getElementById("age").value),
+            gender: document.getElementById("gender").value,
+            phoneNumber: document.getElementById("phoneNumber").value,
+            email: document.getElementById("email").value
+        };
 
-        id: parseInt(document.getElementById("id").value),
+        const response = await fetch(`/api/patients/${patient.id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify(patient)
+        });
 
-        firstName: document.getElementById("firstName").value,
-
-        lastName: document.getElementById("lastName").value,
-
-        age: parseInt(document.getElementById("age").value),
-
-        gender: document.getElementById("gender").value,
-
-        phoneNumber: document.getElementById("phoneNumber").value,
-
-        email: document.getElementById("email").value
-
-    };
-
-    const response = await fetch(`/api/patients/${patient.id}`, {
-
-        method: "PUT",
-
-        headers: {
-            "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify(patient)
-
+        if (response.ok) {
+            alert("Patient updated successfully.");
+            window.location.href = "/Patient";
+        } else {
+            alert("Failed to update patient.");
+        }
     });
-
-    if (response.ok) {
-
-        alert("Patient updated successfully.");
-
-        window.location.href = "/Patient";
-
-    }
-    else {
-
-        alert("Failed to update patient.");
-
-    }
-
-});
-
 </script>
