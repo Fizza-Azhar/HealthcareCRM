@@ -1,5 +1,6 @@
 @{
     ViewData["Title"] = "Login";
+    Layout = null;
 }
 
 <link rel="stylesheet" href="~/css/login.css" />
@@ -80,11 +81,11 @@ document.getElementById("loginForm").addEventListener("submit", async function (
 
     // Save token if it exists
     if (data.token) {
-        localStorage.setItem("token", data.token);
-    }
-
-    // Show API message
+    localStorage.setItem("token", data.token);
+    window.location.href = "/";
+} else {
     document.getElementById("message").innerText = data.message;
+}
 
 });
 

@@ -20,7 +20,7 @@
 
 body {
     margin: 0;
-    padding: 24px 32px;
+    padding: 0;
     background-color: var(--bg);
     color: var(--text);
     font-family: "Segoe UI", Arial, sans-serif;
@@ -202,4 +202,62 @@ a:hover {
     color: var(--text-muted);
     line-height: 1.5;
     margin: 0;
+}
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 32px;
+    background-color: var(--surface);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 4px rgba(16, 24, 40, 0.04);
+}
+
+.navbar-brand {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.navbar-brand:hover {
+    text-decoration: none;
+}
+
+.navbar-links {
+    display: flex;
+    gap: 28px;
+}
+
+.nav-link {
+    color: var(--text-muted);
+    font-size: 14.5px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.nav-link:hover {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.navbar-logout {
+    padding: 8px 18px;
+    background-color: #ffffff;
+    color: var(--text);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-pill);
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.navbar-logout:hover {
+    background-color: #f1f3f5;
+}
+
+.page-content {
+    padding: 24px 32px;
 }

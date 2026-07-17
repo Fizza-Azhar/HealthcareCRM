@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Healthcare CRM</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/patient.css" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">Healthcare CRM</a>
+
+        <div class="navbar-links">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/Patient" class="nav-link">Patients</a>
+            <a href="/Doctor" class="nav-link">Doctors</a>
+            <a href="/Appointment" class="nav-link">Appointments</a>
+        </div>
+
+        <button id="logoutBtn" class="navbar-logout">Logout</button>
+    </nav>
+
+    <main class="page-content">
+        @RenderBody()
+    </main>
+
+    <script>
+        document.getElementById("logoutBtn").addEventListener("click", function () {
+            localStorage.removeItem("token");
+            window.location.href = "/Account/Login";
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
