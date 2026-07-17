@@ -25,5 +25,7 @@ namespace HealthcareCRM.API.Models
         [Required]
         [EmailAddress]
         public string Email { get; set; } = "";
+        
+        public bool IsActive { get; set; } = true;
     }
 }

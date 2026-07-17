@@ -2,7 +2,6 @@
     ViewData["Title"] = "Patient List";
 }
 
-<link rel="stylesheet" href="~/css/patient.css" />
 
 <h2>Patient List</h2>
 <p class="page-subtitle">View, search, and manage registered patients.</p>
@@ -70,7 +69,8 @@
             return;
         }
 
-        const patients = await response.json();
+        const result = await response.json();
+        const patients = result.data;
 
         tableBody.innerHTML = "";
         if (patients.length === 0) {
@@ -97,27 +97,23 @@
     <td>
         <button onclick="viewPatient(${patient.id})">View</button>
         <button onclick="editPatient(${patient.id})">Edit</button>
-        <button onclick="deletePatient(${patient.id})">Delete</button>
+        <button onclick="deactivatePatient(${patient.id})">Delete</button>
     </td>
 </tr>
 `;
         });
     }
 
-    async function deletePatient(id) {
-        if (!confirm("Are you sure you want to delete this patient?")) {
-            return;
-        }
+    async function deactivatePatient(id) {
+    if (!confirm("Deactivate this patient?")) return;
 
-        await fetch(`/api/patients/${id}`, {
-            method: "DELETE",
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        });
+    await fetch(`/api/patients/${id}/deactivate`, {
+        method: "PUT",
+        headers: { "Authorization": `Bearer ${token}` }
+    });
 
-        loadPatients();
-    }
+    loadPatients();
+}
 
     function viewPatient(id) {
         window.location.href = "/Patient/Details?id=" + id;

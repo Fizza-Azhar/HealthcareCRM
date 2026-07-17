@@ -2,7 +2,7 @@
     ViewData["Title"] = "Edit Patient";
 }
 
-<link rel="stylesheet" href="~/css/patient.css" />
+
 
 <div class="form-page-wrapper">
     <div class="form-page-inner">
@@ -83,7 +83,8 @@
             return;
         }
 
-        const patient = await response.json();
+        const result = await response.json();
+        const patient = result.data;
 
         document.getElementById("id").value = patient.id;
         document.getElementById("firstName").value = patient.firstName;
