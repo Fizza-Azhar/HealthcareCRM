@@ -4,11 +4,13 @@ using HealthcareCRM.API.Models;
 using HealthcareCRM.API.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HealthcareCRM.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class DoctorsController : ControllerBase
     {
         private readonly AppDbContext _context;

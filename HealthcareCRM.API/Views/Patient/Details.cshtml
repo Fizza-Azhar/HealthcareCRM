@@ -2,7 +2,6 @@
     ViewData["Title"] = "Patient Details";
 }
 
-<link rel="stylesheet" href="~/css/patient.css" />
 
 <div class="form-page-wrapper">
     <div class="form-page-inner">
@@ -53,12 +52,29 @@
 </div>
 
 <script>
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "/Account/Login";
+    }
+
     const params = new URLSearchParams(window.location.search);
     const patientId = params.get("id");
 
     async function loadPatient() {
-        const response = await fetch(`/api/patients/${patientId}`);
-        const patient = await response.json();
+        const response = await fetch(`/api/patients/${patientId}`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            alert("Failed to load patient details.");
+            return;
+        }
+
+        const result = await response.json();
+        const patient = result.data;
 
         document.getElementById("firstName").innerText = patient.firstName;
         document.getElementById("lastName").innerText = patient.lastName;

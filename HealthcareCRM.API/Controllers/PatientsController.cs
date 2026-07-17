@@ -1,5 +1,7 @@
 using HealthcareCRM.API.Data;
+using HealthcareCRM.API.Helpers;
 using HealthcareCRM.API.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +9,7 @@ namespace HealthcareCRM.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class PatientsController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -15,87 +18,87 @@ namespace HealthcareCRM.API.Controllers
         {
             _context = context;
         }
+
         // GET: api/patients
-// GET: api/patients
-// GET: api/patients
-[HttpGet]
-public async Task<ActionResult<IEnumerable<Patient>>> GetPatients(
-    string? search,
-    int page = 1,
-    int pageSize = 20)
-{
-    var query = _context.Patients.AsQueryable();
+        [HttpGet]
+        public async Task<IActionResult> GetPatients(string? search, int page = 1, int pageSize = 20)
+        {
+            var query = _context.Patients.AsQueryable();
 
-    // Search
-    if (!string.IsNullOrWhiteSpace(search))
-    {
-        query = query.Where(p =>
-            p.FirstName.Contains(search) ||
-            p.LastName.Contains(search) ||
-            p.PhoneNumber.Contains(search));
-    }
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(p =>
+                    p.FirstName.Contains(search) ||
+                    p.LastName.Contains(search) ||
+                    p.PhoneNumber.Contains(search));
+            }
 
-    // Pagination
-    query = query
-        .Skip((page - 1) * pageSize)
-        .Take(pageSize);
+            query = query.Skip((page - 1) * pageSize).Take(pageSize);
 
-    return await query.ToListAsync();
-}
-// GET: api/patients/1
-[HttpGet("{id}")]
-public async Task<ActionResult<Patient>> GetPatient(int id)
-{
-    var patient = await _context.Patients.FindAsync(id);
+            var patients = await query.ToListAsync();
+            return Ok(ApiResponse<List<Patient>>.Ok(patients));
+        }
 
-    if (patient == null)
-    {
-        return NotFound();
-    }
+        // GET: api/patients/1
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetPatient(int id)
+        {
+            var patient = await _context.Patients.FindAsync(id);
 
-    return patient;
-}
-// POST: api/patients
-[HttpPost]
-public async Task<ActionResult<Patient>> CreatePatient(Patient patient)
-{
-    _context.Patients.Add(patient);
+            if (patient == null)
+                return NotFound(ApiResponse<Patient>.Fail("Patient not found."));
 
-    await _context.SaveChangesAsync();
+            return Ok(ApiResponse<Patient>.Ok(patient));
+        }
 
-    return CreatedAtAction(nameof(GetPatient), new { id = patient.Id }, patient);
-}
-// PUT: api/patients/1
-[HttpPut("{id}")]
-public async Task<IActionResult> UpdatePatient(int id, Patient patient)
-{
-    if (id != patient.Id)
-    {
-        return BadRequest();
-    }
+        // POST: api/patients
+        [HttpPost]
+        public async Task<IActionResult> CreatePatient(Patient patient)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ApiResponse<string>.Fail("Invalid patient data."));
 
-    _context.Entry(patient).State = EntityState.Modified;
+            _context.Patients.Add(patient);
+            await _context.SaveChangesAsync();
 
-    await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetPatient), new { id = patient.Id },
+                ApiResponse<Patient>.Ok(patient, "Patient created successfully."));
+        }
 
-    return NoContent();
-}
-// DELETE: api/patients/1
-[HttpDelete("{id}")]
-public async Task<IActionResult> DeletePatient(int id)
-{
-    var patient = await _context.Patients.FindAsync(id);
+        // PUT: api/patients/1
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdatePatient(int id, Patient updated)
+        {
+            var patient = await _context.Patients.FindAsync(id);
+            if (patient == null)
+                return NotFound(ApiResponse<string>.Fail("Patient not found."));
 
-    if (patient == null)
-    {
-        return NotFound();
-    }
+            patient.FirstName = updated.FirstName;
+            patient.LastName = updated.LastName;
+            patient.Age = updated.Age;
+            patient.Gender = updated.Gender;
+            patient.PhoneNumber = updated.PhoneNumber;
+            patient.Email = updated.Email;
 
-    _context.Patients.Remove(patient);
+            await _context.SaveChangesAsync();
+            return Ok(ApiResponse<Patient>.Ok(patient, "Patient updated successfully."));
+        }
 
-    await _context.SaveChangesAsync();
+        // PUT: api/patients/1/deactivate
+        [HttpPut("{id}/deactivate")]
+        public async Task<IActionResult> Deactivate(int id)
+        {
+            var patient = await _context.Patients.FindAsync(id);
+            if (patient == null)
+                return NotFound(ApiResponse<string>.Fail("Patient not found."));
 
-    return NoContent();
-}
+            if (!patient.IsActive)
+                return BadRequest(ApiResponse<string>.Fail("Patient is already inactive."));
+
+            patient.IsActive = false;
+            await _context.SaveChangesAsync();
+
+            return Ok(ApiResponse<Patient>.Ok(patient, "Patient deactivated successfully."));
+        }
     }
 }

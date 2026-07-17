@@ -2,7 +2,6 @@
     ViewData["Title"] = "Add Patient";
 }
 
-<link rel="stylesheet" href="~/css/patient.css" />
 
 <div class="form-page-wrapper">
     <div class="form-page-inner">
@@ -58,47 +57,38 @@
 </div>
 
 <script>
+    const token = localStorage.getItem("token");
 
-document.getElementById("createForm").addEventListener("submit", async function (event) {
+    if (!token) {
+        window.location.href = "/Account/Login";
+    }
 
-    event.preventDefault();
+    document.getElementById("createForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
 
-    const patient = {
+        const patient = {
+            firstName: document.getElementById("firstName").value,
+            lastName: document.getElementById("lastName").value,
+            age: parseInt(document.getElementById("age").value),
+            gender: document.getElementById("gender").value,
+            phoneNumber: document.getElementById("phoneNumber").value,
+            email: document.getElementById("email").value
+        };
 
-        firstName: document.getElementById("firstName").value,
-        lastName: document.getElementById("lastName").value,
-        age: parseInt(document.getElementById("age").value),
-        gender: document.getElementById("gender").value,
-        phoneNumber: document.getElementById("phoneNumber").value,
-        email: document.getElementById("email").value
+        const response = await fetch("/api/patients", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify(patient)
+        });
 
-    };
-
-    const response = await fetch("/api/patients", {
-
-        method: "POST",
-
-        headers: {
-            "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify(patient)
-
+        if (response.ok) {
+            alert("Patient added successfully.");
+            window.location.href = "/Patient";
+        } else {
+            alert("Failed to add patient.");
+        }
     });
-
-    if (response.ok) {
-
-        alert("Patient added successfully.");
-
-        window.location.href = "/Patient";
-
-    }
-    else {
-
-        alert("Failed to add patient.");
-
-    }
-
-});
-
 </script>

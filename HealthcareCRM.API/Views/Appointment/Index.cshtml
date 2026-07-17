@@ -1,0 +1,133 @@
+@{
+    ViewData["Title"] = "Appointments";
+}
+
+
+<h2>Appointments</h2>
+<p class="page-subtitle">All scheduled appointments in the system.</p>
+
+<div class="toolbar">
+    <select id="statusFilter">
+        <option value="">All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Confirmed">Confirmed</option>
+        <option value="Cancelled">Cancelled</option>
+    </select>
+    <a href="/Appointment/Create" class="btn-add">+ Book Appointment</a>
+</div>
+
+<div class="table-card">
+    <table id="appointmentsTable">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Date/Time</th>
+                <th>Status</th>
+                <th>Notes</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "/Account/Login";
+    }
+
+    async function loadAppointments(status = "") {
+        const url = status
+            ? `/api/appointments?status=${status}`
+            : `/api/appointments`;
+
+        const response = await fetch(url, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const tableBody = document.querySelector("#appointmentsTable tbody");
+
+        if (!response.ok) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        Failed to load appointments. Please try again.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        const result = await response.json();
+        const appointments = result.data || [];
+
+        tableBody.innerHTML = "";
+
+        if (appointments.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        No appointments found.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        appointments.forEach(appt => {
+            const patientName = appt.patient ? `${appt.patient.firstName} ${appt.patient.lastName}` : "Unknown";;
+            const doctorName = appt.doctor ? appt.doctor.name : "Unknown";
+            const dateTime = new Date(appt.dateTime).toLocaleString();
+
+            tableBody.innerHTML += `
+<tr>
+    <td>${appt.id}</td>
+    <td>${patientName}</td>
+    <td>${doctorName}</td>
+    <td>${dateTime}</td>
+    <td><span class="tag ${appt.status === 'Confirmed' ? 'tag-green' : appt.status === 'Cancelled' ? 'tag-red' : 'tag-yellow'}">${appt.status}</span></td>
+    <td>${appt.notes || "-"}</td>
+    <td>
+        ${appt.status !== "Confirmed" ? `<button onclick="updateStatus(${appt.id}, 'Confirmed')">Confirm</button>` : ""}
+        ${appt.status !== "Cancelled" ? `<button onclick="cancelAppointment(${appt.id})">Cancel</button>` : ""}
+    </td>
+</tr>
+`;
+        });
+    }
+
+    async function updateStatus(id, newStatus) {
+        const response = await fetch(`/api/appointments/${id}/status`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (response.ok) {
+            loadAppointments(document.getElementById("statusFilter").value);
+        } else {
+            alert("Failed to update appointment status.");
+        }
+    }
+
+    async function cancelAppointment(id) {
+        if (!confirm("Cancel this appointment?")) return;
+        await updateStatus(id, "Cancelled");
+    }
+
+    document.getElementById("statusFilter").addEventListener("change", (e) => {
+        loadAppointments(e.target.value);
+    });
+
+    loadAppointments();
+</script>

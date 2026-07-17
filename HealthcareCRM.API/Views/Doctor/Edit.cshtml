@@ -2,41 +2,74 @@
     ViewData["Title"] = "Edit Doctor";
 }
 
-<link rel="stylesheet" href="~/css/patient.css" />
 
-<h2>Edit Doctor</h2>
 
-<div class="table-card">
-    <form id="editDoctorForm">
-        <input type="hidden" id="doctorId" />
+<div class="form-page-wrapper">
+    <div class="form-page-inner">
+        <h2>Edit Doctor</h2>
+        <p class="page-subtitle">Update the doctor's details below.</p>
 
-        <label>Name</label>
-        <input type="text" id="name" required />
+        <form id="editDoctorForm">
+            <input type="hidden" id="doctorId" />
 
-        <label>Specialization</label>
-        <input type="text" id="specialization" required />
+            <div class="form-grid">
+                <div class="full-width">
+                    <label>Name</label>
+                    <input type="text" id="name" required />
+                </div>
 
-        <label>Phone</label>
-        <input type="text" id="phone" required />
+                <div>
+                    <label>Specialization</label>
+                    <input type="text" id="specialization" required />
+                </div>
 
-        <label>Schedule Days</label>
-        <input type="text" id="scheduleDays" required />
+                <div>
+                    <label>Phone</label>
+                    <input type="text" id="phone" required />
+                </div>
 
-        <button type="submit" class="btn-primary">Update Doctor</button>
-        <p id="errorMsg" class="error-text"></p>
-    </form>
+                <div class="full-width">
+                    <label>Schedule Days</label>
+                    <input type="text" id="scheduleDays" required />
+                </div>
+
+                <div class="full-width">
+                    <p id="errorMsg" style="color: var(--danger);"></p>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit">Update Doctor</button>
+                <a href="/Doctor/Index" class="btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "/Account/Login";
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const doctorId = urlParams.get("id");
 
+    const form = document.getElementById("editDoctorForm");
+    const errorMsg = document.getElementById("errorMsg");
+
     async function loadDoctor() {
-        const response = await fetch(`/api/doctors/${doctorId}`);
+        const response = await fetch(`/api/doctors/${doctorId}`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
         const result = await response.json();
 
         if (!response.ok) {
-            document.getElementById("errorMsg").textContent = "Doctor not found.";
+            errorMsg.textContent = result.message || "Doctor not found.";
             return;
         }
 
@@ -47,9 +80,6 @@
         document.getElementById("phone").value = doctor.phone;
         document.getElementById("scheduleDays").value = doctor.scheduleDays;
     }
-
-    const form = document.getElementById("editDoctorForm");
-    const errorMsg = document.getElementById("errorMsg");
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -65,7 +95,10 @@
 
         const response = await fetch(`/api/doctors/${doctorId}`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
             body: JSON.stringify(updated)
         });
 

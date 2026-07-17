@@ -3,13 +3,69 @@
 }
 
 <div class="hero-wrapper">
-    <div class="hero-card">
-        <h1>Healthcare CRM</h1>
-        <p class="hero-subtitle">Manage patients and doctors in one place.</p>
+    <div class="hero-left">
+        <p class="hero-eyebrow">Healthcare CRM</p>
+        <h1>Manage patients and doctors,<br />all in one place.</h1>
+        <p class="hero-subtitle">Book appointments, track doctor schedules, and keep patient records organized — built for your clinic's daily workflow.</p>
 
         <div class="hero-actions">
-            <a class="hero-btn hero-btn-primary" href="/Patient">View Patients</a>
+            <a class="hero-btn hero-btn-primary" href="/Appointment/Create">+ Book Appointment</a>
+            <a class="hero-btn hero-btn-primary" href="/Patient">View Patients →</a>
             <a class="hero-btn hero-btn-secondary" href="/Doctor">View Doctors</a>
         </div>
     </div>
+
+    <div class="hero-right">
+        <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="200" cy="200" r="180" fill="var(--primary-light)" />
+            <rect x="110" y="90" width="180" height="220" rx="16" fill="var(--surface)" stroke="var(--border)" stroke-width="2" />
+            <rect x="130" y="120" width="140" height="14" rx="7" fill="var(--primary-light)" />
+            <rect x="130" y="145" width="100" height="10" rx="5" fill="var(--border)" />
+            <circle cx="200" cy="205" r="35" fill="var(--primary)" opacity="0.15" />
+            <path d="M185 205 L197 217 L218 190" stroke="var(--primary)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+            <rect x="130" y="255" width="140" height="10" rx="5" fill="var(--border)" />
+            <rect x="130" y="275" width="90" height="10" rx="5" fill="var(--border)" />
+            <circle cx="310" cy="130" r="28" fill="var(--success-light)" />
+            <path d="M298 130 L307 139 L323 120" stroke="var(--success)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+            <circle cx="85" cy="290" r="24" fill="var(--primary-light)" />
+            <circle cx="85" cy="290" r="10" fill="var(--primary)" />
+        </svg>
+    </div>
 </div>
+
+<div class="benefits-section">
+    <h2 class="benefits-title">Why teams choose this CRM</h2>
+
+    <div class="benefits-grid">
+        <div class="benefit-card">
+            <div class="benefit-icon benefit-icon-blue">📋</div>
+            <h3>Organized Records</h3>
+            <p>All patient and doctor information stored in one searchable place.</p>
+        </div>
+
+        <div class="benefit-card">
+            <div class="benefit-icon benefit-icon-green">🗓️</div>
+            <h3>Easy Scheduling</h3>
+            <p>Book, confirm, and cancel appointments in just a few clicks.</p>
+        </div>
+
+        <div class="benefit-card">
+            <div class="benefit-icon benefit-icon-yellow">🩺</div>
+            <h3>Doctor Management</h3>
+            <p>Track specializations, schedules, and availability at a glance.</p>
+        </div>
+
+        <div class="benefit-card">
+            <div class="benefit-icon benefit-icon-blue">🔒</div>
+            <h3>Secure Access</h3>
+            <p>Only authorized staff can log in and view sensitive patient data.</p>
+        </div>
+    </div>
+</div>
+<script>
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "/Account/Login";
+    }
+</script>
