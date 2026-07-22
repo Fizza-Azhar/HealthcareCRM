@@ -64,7 +64,8 @@
         return;
     }
 
-    const patients = await response.json(); // raw array, not wrapped
+    const result = await response.json();
+    const patients = result.data || [];
 
     const select = document.getElementById("patientId");
     patients.forEach(p => {
