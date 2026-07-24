@@ -48,16 +48,16 @@
             </div>
 
             <div class="form-actions">
-                <button type="submit">Save Patient</button>
-                <a class="btn-cancel" href="/Patient">Cancel</a>
+            <button type="submit">Save Patient</button>
+            <a class="btn-cancel" href="/Patient">Cancel</a>
             </div>
+            <p id="errorMsg" class="error-text"></p>
         </form>
 
     </div>
 </div>
 
 <script>
-    const token = localStorage.getItem("token");
 
     if (!token) {
         window.location.href = "/Account/Login";
@@ -85,10 +85,10 @@
         });
 
         if (response.ok) {
-            alert("Patient added successfully.");
-            window.location.href = "/Patient";
-        } else {
-            alert("Failed to add patient.");
-        }
+    window.location.href = "/Patient";
+} else {
+    const result = await response.json().catch(() => ({}));
+    document.getElementById("errorMsg").textContent = result.message || "Failed to add patient.";
+}
     });
 </script>

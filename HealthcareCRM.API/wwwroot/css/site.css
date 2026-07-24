@@ -261,3 +261,71 @@ a:hover {
 .page-content {
     padding: 24px 32px;
 }
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.stat-card {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(16,24,40,0.05);
+}
+
+.stat-label {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin: 0 0 6px 0;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text);
+}
+.breadcrumb {
+    padding: 12px 32px;
+    font-size: 13px;
+    color: var(--text-muted);
+    background-color: var(--bg);
+}
+
+.breadcrumb a {
+    color: var(--text-muted);
+}
+
+.breadcrumb a:hover {
+    color: var(--primary);
+}
+
+.site-footer {
+    padding: 20px 32px;
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+}
+.spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.spinner-row td {
+    text-align: center;
+    padding: 40px !important;
+}

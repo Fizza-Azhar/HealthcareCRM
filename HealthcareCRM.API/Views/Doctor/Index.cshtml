@@ -29,7 +29,6 @@
 </div>
 
 <script>
-    const token = localStorage.getItem("token");
 
     if (!token) {
         window.location.href = "/Account/Login";
@@ -38,30 +37,35 @@
     let allDoctors = [];
 
     async function loadDoctors() {
-        const response = await fetch("/api/doctors", {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        });
+    const tableBody = document.querySelector("#doctorsTable tbody");
+    tableBody.innerHTML = `
+        <tr class="spinner-row">
+            <td colspan="6"><div class="spinner"></div></td>
+        </tr>
+    `;
 
-        const tableBody = document.querySelector("#doctorsTable tbody");
-
-        if (!response.ok) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="empty-state">
-                        Failed to load doctors. Please try again.
-                    </td>
-                </tr>
-            `;
-            return;
+    const response = await fetch("/api/doctors", {
+        headers: {
+            "Authorization": `Bearer ${token}`
         }
+    });
 
-        const result = await response.json();
-        allDoctors = result.data || [];
-
-        renderDoctors(allDoctors);
+    if (!response.ok) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty-state">
+                    Failed to load doctors. Please try again.
+                </td>
+            </tr>
+        `;
+        return;
     }
+
+    const result = await response.json();
+    allDoctors = result.data || [];
+
+    renderDoctors(allDoctors);
+}
 
     function renderDoctors(doctors) {
         const tableBody = document.querySelector("#doctorsTable tbody");
@@ -96,21 +100,27 @@
     }
 
     async function deactivateDoctor(id) {
-        if (!confirm("Deactivate this doctor?")) return;
+    if (!confirm("Deactivate this doctor?")) return;
 
-        const response = await fetch(`/api/doctors/${id}/deactivate`, {
-            method: "PUT",
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        });
-
-        if (response.ok) {
-            loadDoctors();
-        } else {
-            alert("Failed to deactivate doctor.");
+    const response = await fetch(`/api/doctors/${id}/deactivate`, {
+        method: "PUT",
+        headers: {
+            "Authorization": `Bearer ${token}`
         }
+    });
+
+    if (response.status === 403) {
+        alert("You do not have permission to deactivate doctors. Admin access required.");
+        return;
     }
+
+    if (!response.ok) {
+        alert("Failed to deactivate doctor.");
+        return;
+    }
+
+    loadDoctors();
+}
 
     document.getElementById("searchBox").addEventListener("input", (e) => {
         const term = e.target.value.toLowerCase();

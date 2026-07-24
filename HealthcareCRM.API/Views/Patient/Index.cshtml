@@ -37,7 +37,6 @@
 </div>
 
 <script>
-    const token = localStorage.getItem("token");
     let currentPage = 1;
     const pageSize = 5;
 
@@ -46,46 +45,51 @@
     }
 
     async function loadPatients(page = 1) {
-        currentPage = page;
+    currentPage = page;
 
-        const search = document.getElementById("searchBox").value;
+    const tableBody = document.querySelector("#patientsTable tbody");
+    tableBody.innerHTML = `
+        <tr class="spinner-row">
+            <td colspan="8"><div class="spinner"></div></td>
+        </tr>
+    `;
 
-        const response = await fetch(`/api/patients?search=${search}&page=${currentPage}&pageSize=${pageSize}`, {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        });
+    const search = document.getElementById("searchBox").value;
 
-        const tableBody = document.querySelector("#patientsTable tbody");
-
-        if (!response.ok) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="8" class="empty-state">
-                        Failed to load patients. Please try again.
-                    </td>
-                </tr>
-            `;
-            return;
+    const response = await fetch(`/api/patients?search=${search}&page=${currentPage}&pageSize=${pageSize}`, {
+        headers: {
+            "Authorization": `Bearer ${token}`
         }
+    });
 
-        const result = await response.json();
-        const patients = result.data;
+    if (!response.ok) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="8" class="empty-state">
+                    Failed to load patients. Please try again.
+                </td>
+            </tr>
+        `;
+        return;
+    }
 
-        tableBody.innerHTML = "";
-        if (patients.length === 0) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="8" class="empty-state">
-                        No patients found.
-                    </td>
-                </tr>
-            `;
-            return;
-        }
+    const result = await response.json();
+    const patients = result.data;
 
-        patients.forEach(patient => {
-            tableBody.innerHTML += `
+    tableBody.innerHTML = "";
+    if (patients.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="8" class="empty-state">
+                    No patients found.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    patients.forEach(patient => {
+        tableBody.innerHTML += `
 <tr>
     <td>${patient.id}</td>
     <td>${patient.firstName}</td>
@@ -101,16 +105,26 @@
     </td>
 </tr>
 `;
-        });
-    }
+    });
+}
 
     async function deactivatePatient(id) {
     if (!confirm("Deactivate this patient?")) return;
 
-    await fetch(`/api/patients/${id}/deactivate`, {
+    const response = await fetch(`/api/patients/${id}/deactivate`, {
         method: "PUT",
         headers: { "Authorization": `Bearer ${token}` }
     });
+
+    if (response.status === 403) {
+        alert("You do not have permission to deactivate patients. Admin access required.");
+        return;
+    }
+
+    if (!response.ok) {
+        alert("Failed to deactivate patient.");
+        return;
+    }
 
     loadPatients();
 }
