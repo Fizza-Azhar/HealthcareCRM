@@ -10,6 +10,10 @@
 </head>
 <body>
 
+    <script>
+        const token = localStorage.getItem("token");
+    </script>
+
     <nav class="navbar">
         <a href="/" class="navbar-brand">Healthcare CRM</a>
 
@@ -18,16 +22,48 @@
             <a href="/Patient" class="nav-link">Patients</a>
             <a href="/Doctor" class="nav-link">Doctors</a>
             <a href="/Appointment" class="nav-link">Appointments</a>
+            <a href="/User" class="nav-link" id="userManagementLink" style="display:none;">User Management</a>
+            <a href="/Dashboard" class="nav-link" id="dashboardLink" style="display:none;">Dashboard</a>
         </div>
 
         <button id="logoutBtn" class="navbar-logout">Logout</button>
     </nav>
+    <div class="breadcrumb">
+    <a href="/">Home</a> / <span>@ViewData["Title"]</span>
+</div>
 
     <main class="page-content">
         @RenderBody()
     </main>
+    
+    <footer class="site-footer">
+    &copy; 2026 Healthcare CRM — Internship Project
+    </footer>
 
     <script>
+        function decodeToken(token) {
+            try {
+                const payload = token.split('.')[1];
+                const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+                return decoded;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        if (token) {
+            const decoded = decodeToken(token);
+            const role = decoded ? decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] : null;
+
+            if (role === "Admin") {
+                const link = document.getElementById("userManagementLink");
+                if (link) link.style.display = "inline";
+
+                const dashLink = document.getElementById("dashboardLink");
+                if (dashLink) dashLink.style.display = "inline";
+            }
+        }
+
         document.getElementById("logoutBtn").addEventListener("click", function () {
             localStorage.removeItem("token");
             window.location.href = "/Account/Login";

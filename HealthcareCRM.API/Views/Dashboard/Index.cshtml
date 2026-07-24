@@ -1,0 +1,106 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<h2>Dashboard</h2>
+<p class="page-subtitle">Live overview of clinic activity.</p>
+
+<div class="dashboard-cards">
+    <div class="stat-card">
+        <p class="stat-label">Total Patients</p>
+        <p class="stat-value" id="totalPatients">-</p>
+    </div>
+    <div class="stat-card">
+        <p class="stat-label">Appointments Today</p>
+        <p class="stat-value" id="appointmentsToday">-</p>
+    </div>
+    <div class="stat-card">
+        <p class="stat-label">This Week</p>
+        <p class="stat-value" id="appointmentsThisWeek">-</p>
+    </div>
+    <div class="stat-card">
+        <p class="stat-label">Pending</p>
+        <p class="stat-value" id="pendingCount">-</p>
+    </div>
+</div>
+
+<div class="table-card" style="padding: 24px; margin-top: 24px;">
+    <h3 style="margin-top:0;">Appointment Status Breakdown</h3>
+    <canvas id="statusChart" height="100"></canvas>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+    if (!token) {
+        window.location.href = "/Account/Login";
+    }
+
+    async function loadDashboard() {
+    document.querySelectorAll(".stat-value").forEach(el => {
+        el.innerHTML = `<div class="spinner"></div>`;
+    });
+
+    const response = await fetch("/api/dashboard/stats", {
+        headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (response.status === 403) {
+        document.querySelector(".dashboard-cards").style.display = "none";
+        document.querySelector(".table-card").innerHTML = `
+            <p class="empty-state">You do not have permission to view this page. Admin access required.</p>
+        `;
+        return;
+    }
+
+    if (!response.ok) {
+        alert("Failed to load dashboard.");
+        return;
+    }
+
+    const result = await response.json();
+    const stats = result.data;
+
+        document.getElementById("totalPatients").innerText = stats.totalPatients;
+        document.getElementById("appointmentsToday").innerText = stats.appointmentsToday;
+        document.getElementById("appointmentsThisWeek").innerText = stats.appointmentsThisWeek;
+        document.getElementById("pendingCount").innerText = stats.pendingCount;
+
+        const breakdown = stats.statusBreakdown || {};
+        const labels = Object.keys(breakdown);
+        const values = Object.values(breakdown);
+
+        const statusColors = {
+    "Pending": "#eab308",
+    "Confirmed": "#16a34a",
+    "Cancelled": "#dc2626"
+};
+
+const colors = labels.map(label => statusColors[label] || "#94a3b8");
+
+new Chart(document.getElementById("statusChart"), {
+    type: "bar",
+    data: {
+        labels: labels,
+        datasets: [{
+            label: "Appointments",
+            data: values,
+            backgroundColor: colors,
+            borderRadius: 6,
+            maxBarThickness: 90
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { stepSize: 1 }
+            }
+        }
+    }
+});
+    }
+
+    loadDashboard();
+</script>

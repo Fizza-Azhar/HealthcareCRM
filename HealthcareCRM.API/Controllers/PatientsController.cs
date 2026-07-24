@@ -20,10 +20,14 @@ namespace HealthcareCRM.API.Controllers
         }
 
         // GET: api/patients
+        // GET: api/patients?includeInactive=true
         [HttpGet]
-        public async Task<IActionResult> GetPatients(string? search, int page = 1, int pageSize = 20)
+        public async Task<IActionResult> GetPatients(string? search, int page = 1, int pageSize = 20, bool includeInactive = false)
         {
             var query = _context.Patients.AsQueryable();
+
+            if (!includeInactive)
+                query = query.Where(p => p.IsActive);
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -85,6 +89,7 @@ namespace HealthcareCRM.API.Controllers
         }
 
         // PUT: api/patients/1/deactivate
+        [Authorize(Policy = "AdminOnly")]
         [HttpPut("{id}/deactivate")]
         public async Task<IActionResult> Deactivate(int id)
         {

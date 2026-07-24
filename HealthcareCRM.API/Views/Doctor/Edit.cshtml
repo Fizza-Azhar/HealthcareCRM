@@ -34,7 +34,7 @@
                 </div>
 
                 <div class="full-width">
-                    <p id="errorMsg" style="color: var(--danger);"></p>
+                    <p id="errorMsg" class="error-text"></p>
                 </div>
             </div>
 
@@ -47,7 +47,6 @@
 </div>
 
 <script>
-    const token = localStorage.getItem("token");
 
     if (!token) {
         window.location.href = "/Account/Login";

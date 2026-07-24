@@ -35,25 +35,28 @@
 </div>
 
 <script>
-    const token = localStorage.getItem("token");
 
     if (!token) {
         window.location.href = "/Account/Login";
     }
 
     async function loadAppointments(status = "") {
-        const url = status
-            ? `/api/appointments?status=${status}`
-            : `/api/appointments`;
+    const tableBody = document.querySelector("#appointmentsTable tbody");
+    tableBody.innerHTML = `
+        <tr class="spinner-row">
+            <td colspan="7"><div class="spinner"></div></td>
+        </tr>
+    `;
 
-        const response = await fetch(url, {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        });
+    const url = status
+        ? `/api/appointments?status=${status}`
+        : `/api/appointments`;
 
-        const tableBody = document.querySelector("#appointmentsTable tbody");
-
+    const response = await fetch(url, {
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    });
         if (!response.ok) {
             tableBody.innerHTML = `
                 <tr>

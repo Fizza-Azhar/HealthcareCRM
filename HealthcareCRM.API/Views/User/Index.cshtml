@@ -1,0 +1,103 @@
+@{
+    ViewData["Title"] = "User Management";
+}
+
+<h2>User Management</h2>
+<p class="page-subtitle">View all users and manage their roles. Admin access only.</p>
+
+<div class="table-card">
+    <table id="usersTable">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+    if (!token) {
+        window.location.href = "/Account/Login";
+    }
+
+    async function loadUsers() {
+    const tableBody = document.querySelector("#usersTable tbody");
+    tableBody.innerHTML = `
+        <tr class="spinner-row">
+            <td colspan="5"><div class="spinner"></div></td>
+        </tr>
+    `;
+
+    const response = await fetch("/api/users", {
+        headers: { "Authorization": `Bearer ${token}` }
+    });
+
+        if (response.status === 401 || response.status === 403) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="empty-state">
+                        You do not have permission to view this page.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        if (!response.ok) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="empty-state">
+                        Failed to load users.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        const result = await response.json();
+        const users = result.data || [];
+
+        tableBody.innerHTML = "";
+        users.forEach(u => {
+            tableBody.innerHTML += `
+<tr>
+    <td>${u.id}</td>
+    <td>${u.firstName} ${u.lastName}</td>
+    <td>${u.email}</td>
+    <td><span class="tag ${u.role === 'Admin' ? 'tag-blue' : 'tag-yellow'}">${u.role}</span></td>
+    <td>
+        ${u.role === 'Staff'
+            ? `<button onclick="updateRole(${u.id}, 'Admin')">Promote to Admin</button>`
+            : `<button onclick="updateRole(${u.id}, 'Staff')">Demote to Staff</button>`}
+    </td>
+</tr>
+`;
+        });
+    }
+
+    async function updateRole(id, newRole) {
+        if (!confirm(`Change this user's role to ${newRole}?`)) return;
+
+        const response = await fetch(`/api/users/${id}/role`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ role: newRole })
+        });
+
+        if (response.ok) {
+            loadUsers();
+        } else {
+            alert("Failed to update role.");
+        }
+    }
+
+    loadUsers();
+</script>

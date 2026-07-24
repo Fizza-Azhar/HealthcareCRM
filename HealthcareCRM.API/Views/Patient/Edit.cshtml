@@ -51,10 +51,11 @@
                 </div>
             </div>
 
-            <div class="form-actions">
-                <button type="submit">Update Patient</button>
-                <a class="btn-cancel" href="/Patient">Cancel</a>
-            </div>
+           <div class="form-actions">
+           <button type="submit">Update Patient</button>
+           <a class="btn-cancel" href="/Patient">Cancel</a>
+           </div>
+           <p id="errorMsg" class="error-text"></p>
 
         </form>
 
@@ -62,7 +63,6 @@
 </div>
 
 <script>
-    const token = localStorage.getItem("token");
 
     if (!token) {
         window.location.href = "/Account/Login";
@@ -79,10 +79,9 @@
         });
 
         if (!response.ok) {
-            alert("Failed to load patient.");
-            return;
-        }
-
+        document.getElementById("errorMsg").textContent = "Failed to load patient.";
+        return;
+}
         const result = await response.json();
         const patient = result.data;
 
@@ -120,10 +119,10 @@
         });
 
         if (response.ok) {
-            alert("Patient updated successfully.");
-            window.location.href = "/Patient";
-        } else {
-            alert("Failed to update patient.");
-        }
+    window.location.href = "/Patient";
+} else {
+    const result = await response.json().catch(() => ({}));
+    document.getElementById("errorMsg").textContent = result.message || "Failed to update patient.";
+}
     });
 </script>
