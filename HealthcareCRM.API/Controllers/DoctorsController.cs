@@ -82,6 +82,7 @@ namespace HealthcareCRM.API.Controllers
         }
 
         // PUT: api/doctors/5/deactivate
+        [Authorize(Policy = "AdminOnly")]
         [HttpPut("{id}/deactivate")]
         public async Task<IActionResult> Deactivate(int id)
         {
@@ -99,6 +100,7 @@ namespace HealthcareCRM.API.Controllers
         }
 
         // PUT: api/doctors/5/reactivate
+        [Authorize(Policy = "AdminOnly")]
         [HttpPut("{id}/reactivate")]
         public async Task<IActionResult> Reactivate(int id)
         {
