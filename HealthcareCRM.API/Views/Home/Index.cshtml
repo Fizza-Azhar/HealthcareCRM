@@ -4,32 +4,84 @@
 
 <div class="hero-wrapper">
     <div class="hero-left">
-        <p class="hero-eyebrow">Healthcare CRM</p>
-        <h1>Manage patients and doctors,<br />all in one place.</h1>
-        <p class="hero-subtitle">Book appointments, track doctor schedules, and keep patient records organized — built for your clinic's daily workflow.</p>
+        <p class="hero-eyebrow">Compassionate · Trusted · Efficient</p>
+        <h1>Your Clinic,<br />Organized.</h1>
+        <p class="hero-subtitle">We help your team manage patients, doctors, and appointments with confidence — built for your clinic's daily workflow.</p>
 
         <div class="hero-actions">
-            <a class="hero-btn hero-btn-primary" href="/Appointment/Create">+ Book Appointment</a>
-            <a class="hero-btn hero-btn-primary" href="/Patient">View Patients →</a>
-            <a class="hero-btn hero-btn-secondary" href="/Doctor">View Doctors</a>
+            <a class="hero-btn hero-btn-primary" href="/Appointment/Create">Book Appointment →</a>
+            <a class="hero-btn hero-btn-secondary" href="/Doctor">Learn More</a>
+        </div>
+
+        <div class="hero-trust">
+            <div class="trust-avatars">
+    <img src="/assets/Images/doctor2.jpg" alt="Staff" class="trust-avatar-img" />
+    <img src="/assets/Images/doctor4.jpg" alt="Staff" class="trust-avatar-img" />
+    <img src="/assets/Images/doctor5.jpg" alt="Staff" class="trust-avatar-img" />
+</div>
+            <div class="trust-text">
+                <span class="trust-stars">★★★★★</span>
+                <span id="trustCount">Loading trusted by staff...</span>
+            </div>
         </div>
     </div>
 
-    <div class="hero-right">
-        <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="200" cy="200" r="180" fill="var(--primary-light)" />
-            <rect x="110" y="90" width="180" height="220" rx="16" fill="var(--surface)" stroke="var(--border)" stroke-width="2" />
-            <rect x="130" y="120" width="140" height="14" rx="7" fill="var(--primary-light)" />
-            <rect x="130" y="145" width="100" height="10" rx="5" fill="var(--border)" />
-            <circle cx="200" cy="205" r="35" fill="var(--primary)" opacity="0.15" />
-            <path d="M185 205 L197 217 L218 190" stroke="var(--primary)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-            <rect x="130" y="255" width="140" height="10" rx="5" fill="var(--border)" />
-            <rect x="130" y="275" width="90" height="10" rx="5" fill="var(--border)" />
-            <circle cx="310" cy="130" r="28" fill="var(--success-light)" />
-            <path d="M298 130 L307 139 L323 120" stroke="var(--success)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-            <circle cx="85" cy="290" r="24" fill="var(--primary-light)" />
-            <circle cx="85" cy="290" r="10" fill="var(--primary)" />
-        </svg>
+   <div class="hero-right">
+    <img src="/assets/Images/doctor1.jpg" alt="Doctor" class="hero-image" />
+</div>
+</div>
+
+<div class="feature-strip">
+    <div class="feature-item">
+        <div class="feature-icon">👥</div>
+        <p class="feature-label">Patient Records</p>
+    </div>
+    <div class="feature-item">
+        <div class="feature-icon">📅</div>
+        <p class="feature-label">Easy Scheduling</p>
+    </div>
+    <div class="feature-item">
+        <div class="feature-icon">🩺</div>
+        <p class="feature-label">Doctor Management</p>
+    </div>
+    <div class="feature-item">
+        <div class="feature-icon">📊</div>
+        <p class="feature-label">Live Insights</p>
+    </div>
+    <div class="feature-item">
+        <div class="feature-icon">🔒</div>
+        <p class="feature-label">Secure Access</p>
+    </div>
+</div>
+
+<div class="stats-bar">
+    <div class="stat-item">
+        <p class="stat-number" id="statDoctors">-</p>
+        <p class="stat-caption">Active Doctors</p>
+    </div>
+    <div class="stat-item">
+        <p class="stat-number" id="statPatients">-</p>
+        <p class="stat-caption">Registered Patients</p>
+    </div>
+    <div class="stat-item">
+        <p class="stat-number" id="statAppointments">-</p>
+        <p class="stat-caption">Appointments This Week</p>
+    </div>
+</div>
+
+<div class="about-section">
+    <div class="about-image">
+    <img src="/assets/Images/doctor3.webp" alt="Doctor with patient" />
+</div>
+    <div class="about-content">
+        <p class="hero-eyebrow">About Us</p>
+        <h2>We're Here for You and Your Team</h2>
+        <p class="about-text">Our mission is to give your clinic a simple, reliable way to manage patients, doctors, and appointments — all in one organized place.</p>
+        <ul class="about-checklist">
+            <li>✓ Organized patient records</li>
+            <li>✓ Fast, reliable scheduling</li>
+            <li>✓ Secure, role-based access</li>
+        </ul>
     </div>
 </div>
 
@@ -62,9 +114,34 @@
         </div>
     </div>
 </div>
-<script>
 
+<script>
     if (!token) {
         window.location.href = "/Account/Login";
     }
+
+    async function loadHomeStats() {
+        try {
+            const response = await fetch("/api/home-stats", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            if (!response.ok) {
+                document.getElementById("trustCount").innerText = "";
+                return;
+            }
+
+            const result = await response.json();
+            const stats = result.data;
+
+            document.getElementById("statDoctors").innerText = stats.activeDoctors;
+            document.getElementById("statPatients").innerText = stats.totalPatients;
+            document.getElementById("statAppointments").innerText = stats.appointmentsThisWeek;
+            document.getElementById("trustCount").innerText = `Trusted by ${stats.activeDoctors}+ doctors on staff`;
+        } catch {
+            document.getElementById("trustCount").innerText = "";
+        }
+    }
+
+    loadHomeStats();
 </script>

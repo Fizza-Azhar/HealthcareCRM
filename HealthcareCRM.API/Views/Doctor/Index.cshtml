@@ -5,9 +5,11 @@
 
 <h2>Doctor List</h2>
 <p class="page-subtitle">Active doctors currently registered in the system.</p>
-
 <div class="toolbar">
     <input type="text" id="searchBox" placeholder="Search doctors..." />
+    <label id="showInactiveWrapper" style="display:none; align-items:center; gap:6px; font-size:14px;">
+        <input type="checkbox" id="showInactive" /> Show inactive
+    </label>
     <a href="/Doctor/Create" class="btn-add">+ Add Doctor</a>
 </div>
 
@@ -31,10 +33,21 @@
 <script>
 
     if (!token) {
-        window.location.href = "/Account/Login";
-    }
+    window.location.href = "/Account/Login";
+}
 
-    let allDoctors = [];
+const decoded = token ? JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))) : null;
+const role = decoded ? decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] : null;
+
+if (role === "Admin") {
+    document.getElementById("showInactiveWrapper").style.display = "flex";
+}
+
+document.getElementById("showInactive")?.addEventListener("change", () => {
+    loadDoctors();
+});
+
+let allDoctors = [];
 
     async function loadDoctors() {
     const tableBody = document.querySelector("#doctorsTable tbody");
@@ -44,7 +57,10 @@
         </tr>
     `;
 
-    const response = await fetch("/api/doctors", {
+    const showInactiveCheckbox = document.getElementById("showInactive");
+    const includeInactive = showInactiveCheckbox ? showInactiveCheckbox.checked : false;
+
+    const response = await fetch(`/api/doctors?includeInactive=${includeInactive}`, {
         headers: {
             "Authorization": `Bearer ${token}`
         }
@@ -67,6 +83,10 @@
     renderDoctors(allDoctors);
 }
 
+    function getInitials(name) {
+        return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+    }
+
     function renderDoctors(doctors) {
         const tableBody = document.querySelector("#doctorsTable tbody");
         tableBody.innerHTML = "";
@@ -75,7 +95,7 @@
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="6" class="empty-state">
-                        No active doctors found.
+                        No doctors found.
                     </td>
                 </tr>
             `;
@@ -83,20 +103,22 @@
         }
 
         doctors.forEach(doctor => {
-            tableBody.innerHTML += `
+    tableBody.innerHTML += `
 <tr>
     <td>${doctor.id}</td>
-    <td>${doctor.name}</td>
+    <td class="name-cell"><span class="avatar-circle">${getInitials(doctor.name)}</span>${doctor.name}</td>
     <td><span class="tag tag-blue">${doctor.specialization}</span></td>
     <td>${doctor.phone}</td>
     <td>${doctor.scheduleDays}</td>
     <td>
         <a href="/Doctor/Edit?id=${doctor.id}">Edit</a>
-        <button onclick="deactivateDoctor(${doctor.id})">Deactivate</button>
+        ${doctor.isActive
+            ? `<button onclick="deactivateDoctor(${doctor.id})">Deactivate</button>`
+            : `<button onclick="reactivateDoctor(${doctor.id})">Reactivate</button>`}
     </td>
 </tr>
 `;
-        });
+});
     }
 
     async function deactivateDoctor(id) {
@@ -116,6 +138,28 @@
 
     if (!response.ok) {
         alert("Failed to deactivate doctor.");
+        return;
+    }
+
+    loadDoctors();
+}
+async function reactivateDoctor(id) {
+    if (!confirm("Reactivate this doctor?")) return;
+
+    const response = await fetch(`/api/doctors/${id}/reactivate`, {
+        method: "PUT",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    });
+
+    if (response.status === 403) {
+        alert("You do not have permission to reactivate doctors. Admin access required.");
+        return;
+    }
+
+    if (!response.ok) {
+        alert("Failed to reactivate doctor.");
         return;
     }
 

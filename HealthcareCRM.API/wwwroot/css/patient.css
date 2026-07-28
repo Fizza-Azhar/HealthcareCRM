@@ -1,19 +1,4 @@
-:root {
-    --primary: #2563a8;
-    --primary-dark: #1e4f87;
-    --primary-light: #eaf2fb;
-    --bg: #f4f6f9;
-    --surface: #ffffff;
-    --border: #e2e6ea;
-    --text: #1f2937;
-    --text-muted: #6b7280;
-    --danger: #dc3545;
-    --danger-dark: #b02a37;
-    --success: #1a7a5e;
-    --success-light: #e8f5f0;
-    --radius: 10px;
-    --radius-pill: 24px;
-}
+
 
 * {
     box-sizing: border-box;

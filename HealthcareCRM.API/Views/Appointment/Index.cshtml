@@ -40,6 +40,10 @@
         window.location.href = "/Account/Login";
     }
 
+    function getInitials(name) {
+        return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+    }
+
     async function loadAppointments(status = "") {
     const tableBody = document.querySelector("#appointmentsTable tbody");
     tableBody.innerHTML = `
@@ -92,8 +96,8 @@
             tableBody.innerHTML += `
 <tr>
     <td>${appt.id}</td>
-    <td>${patientName}</td>
-    <td>${doctorName}</td>
+    <td class="name-cell"><span class="avatar-circle">${getInitials(patientName)}</span>${patientName}</td>
+    <td class="name-cell"><span class="avatar-circle">${getInitials(doctorName)}</span>${doctorName}</td>
     <td>${dateTime}</td>
     <td><span class="tag ${appt.status === 'Confirmed' ? 'tag-green' : appt.status === 'Cancelled' ? 'tag-red' : 'tag-yellow'}">${appt.status}</span></td>
     <td>${appt.notes || "-"}</td>
