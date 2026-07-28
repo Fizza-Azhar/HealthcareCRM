@@ -6,8 +6,12 @@
 <h2>Patient List</h2>
 <p class="page-subtitle">View, search, and manage registered patients.</p>
 
+
 <div class="toolbar">
     <input type="text" id="searchBox" placeholder="Search by name or phone" />
+    <label id="showInactiveWrapper" style="display:none; align-items:center; gap:6px; font-size:14px;">
+        <input type="checkbox" id="showInactive" /> Show inactive
+    </label>
     <a class="btn-add" href="/Patient/Create">+ Add New Patient</a>
 </div>
 
@@ -16,8 +20,7 @@
         <thead>
             <tr>
                 <th>Id</th>
-                <th>First Name</th>
-                <th>Last Name</th>
+                <th>Name</th>
                 <th>Age</th>
                 <th>Gender</th>
                 <th>Phone</th>
@@ -43,6 +46,20 @@
     if (!token) {
         window.location.href = "/Account/Login";
     }
+    const decoded = token ? JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))) : null;
+const role = decoded ? decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] : null;
+
+if (role === "Admin") {
+    document.getElementById("showInactiveWrapper").style.display = "flex";
+}
+
+document.getElementById("showInactive")?.addEventListener("change", () => {
+    loadPatients(1);
+});
+
+    function getInitials(first, last) {
+        return `${first[0] || ""}${last[0] || ""}`.toUpperCase();
+    }
 
     async function loadPatients(page = 1) {
     currentPage = page;
@@ -50,13 +67,15 @@
     const tableBody = document.querySelector("#patientsTable tbody");
     tableBody.innerHTML = `
         <tr class="spinner-row">
-            <td colspan="8"><div class="spinner"></div></td>
+            <td colspan="7"><div class="spinner"></div></td>
         </tr>
     `;
 
     const search = document.getElementById("searchBox").value;
+    const showInactiveCheckbox = document.getElementById("showInactive");
+    const includeInactive = showInactiveCheckbox ? showInactiveCheckbox.checked : false;
 
-    const response = await fetch(`/api/patients?search=${search}&page=${currentPage}&pageSize=${pageSize}`, {
+    const response = await fetch(`/api/patients?search=${search}&page=${currentPage}&pageSize=${pageSize}&includeInactive=${includeInactive}`, {
         headers: {
             "Authorization": `Bearer ${token}`
         }
@@ -65,7 +84,7 @@
     if (!response.ok) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="8" class="empty-state">
+                <td colspan="7" class="empty-state">
                     Failed to load patients. Please try again.
                 </td>
             </tr>
@@ -80,7 +99,7 @@
     if (patients.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="8" class="empty-state">
+                <td colspan="7" class="empty-state">
                     No patients found.
                 </td>
             </tr>
@@ -92,8 +111,7 @@
         tableBody.innerHTML += `
 <tr>
     <td>${patient.id}</td>
-    <td>${patient.firstName}</td>
-    <td>${patient.lastName}</td>
+    <td class="name-cell"><span class="avatar-circle">${getInitials(patient.firstName, patient.lastName)}</span>${patient.firstName} ${patient.lastName}</td>
     <td>${patient.age}</td>
     <td>${patient.gender}</td>
     <td>${patient.phoneNumber}</td>
@@ -101,7 +119,9 @@
     <td>
         <button onclick="viewPatient(${patient.id})">View</button>
         <button onclick="editPatient(${patient.id})">Edit</button>
-        <button onclick="deactivatePatient(${patient.id})">Delete</button>
+        ${patient.isActive
+            ? `<button onclick="deactivatePatient(${patient.id})">Deactivate</button>`
+            : `<button onclick="reactivatePatient(${patient.id})">Reactivate</button>`}
     </td>
 </tr>
 `;
@@ -154,6 +174,25 @@
             loadPatients(currentPage);
         }
     }
+async function reactivatePatient(id) {
+    if (!confirm("Reactivate this patient?")) return;
 
+    const response = await fetch(`/api/patients/${id}/reactivate`, {
+        method: "PUT",
+        headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (response.status === 403) {
+        alert("You do not have permission to reactivate patients. Admin access required.");
+        return;
+    }
+
+    if (!response.ok) {
+        alert("Failed to reactivate patient.");
+        return;
+    }
+
+    loadPatients(currentPage);
+}
     loadPatients();
 </script>
