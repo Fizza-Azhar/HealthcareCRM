@@ -20,28 +20,27 @@ namespace HealthcareCRM.API.Controllers
         }
 
         // GET: api/patients
-        // GET: api/patients?includeInactive=true
-        [HttpGet]
-        public async Task<IActionResult> GetPatients(string? search, int page = 1, int pageSize = 20, bool includeInactive = false)
-        {
-            var query = _context.Patients.AsQueryable();
+[HttpGet]
+public async Task<IActionResult> GetPatients(string? search, int page = 1, int pageSize = 20, bool includeInactive = false)
+{
+    var query = _context.Patients.AsQueryable();
 
-            if (!includeInactive)
-                query = query.Where(p => p.IsActive);
+    if (!includeInactive)
+        query = query.Where(p => p.IsActive);
 
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                query = query.Where(p =>
-                    p.FirstName.Contains(search) ||
-                    p.LastName.Contains(search) ||
-                    p.PhoneNumber.Contains(search));
-            }
+    if (!string.IsNullOrWhiteSpace(search))
+    {
+        query = query.Where(p =>
+            p.FirstName.Contains(search) ||
+            p.LastName.Contains(search) ||
+            p.PhoneNumber.Contains(search));
+    }
 
-            query = query.Skip((page - 1) * pageSize).Take(pageSize);
+    query = query.Skip((page - 1) * pageSize).Take(pageSize);
 
-            var patients = await query.ToListAsync();
-            return Ok(ApiResponse<List<Patient>>.Ok(patients));
-        }
+    var patients = await query.ToListAsync();
+    return Ok(ApiResponse<List<Patient>>.Ok(patients));
+}
 
         // GET: api/patients/1
         [HttpGet("{id}")]
@@ -104,6 +103,24 @@ namespace HealthcareCRM.API.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(ApiResponse<Patient>.Ok(patient, "Patient deactivated successfully."));
+        }
+
+        // PUT: api/patients/1/reactivate
+        [Authorize(Policy = "AdminOnly")]
+        [HttpPut("{id}/reactivate")]
+        public async Task<IActionResult> Reactivate(int id)
+        {
+        var patient = await _context.Patients.FindAsync(id);
+         if (patient == null)
+        return NotFound(ApiResponse<string>.Fail("Patient not found."));
+
+         if (patient.IsActive)
+        return BadRequest(ApiResponse<string>.Fail("Patient is already active."));
+
+        patient.IsActive = true;
+        await _context.SaveChangesAsync();
+
+        return Ok(ApiResponse<Patient>.Ok(patient, "Patient reactivated successfully."));
         }
     }
 }
