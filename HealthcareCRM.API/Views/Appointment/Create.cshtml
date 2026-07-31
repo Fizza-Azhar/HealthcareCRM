@@ -54,40 +54,49 @@
     }
 
     async function loadPatients() {
-    const response = await fetch("/api/patients?pageSize=1000", {
-        headers: { "Authorization": `Bearer ${token}` }
-    });
+        try {
+            const response = await fetch("/api/patients?pageSize=1000", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
 
-    if (!response.ok) {
-        document.getElementById("errorMsg").textContent = "Failed to load patients.";
-        return;
+            if (!response.ok) {
+                document.getElementById("errorMsg").textContent = "Failed to load patients.";
+                return;
+            }
+
+            const result = await response.json();
+            const patients = result.data || [];
+
+            const select = document.getElementById("patientId");
+            patients.forEach(p => {
+                const option = document.createElement("option");
+                option.value = p.id;
+                option.textContent = `${p.firstName} ${p.lastName}`;
+                select.appendChild(option);
+            });
+        } catch (err) {
+            document.getElementById("errorMsg").textContent = "Could not connect to the server. Please check your connection and try again.";
+        }
     }
 
-    const result = await response.json();
-    const patients = result.data || [];
-
-    const select = document.getElementById("patientId");
-    patients.forEach(p => {
-        const option = document.createElement("option");
-        option.value = p.id;
-        option.textContent = `${p.firstName} ${p.lastName}`;
-        select.appendChild(option);
-    });
-}
     async function loadDoctors() {
-        const response = await fetch("/api/doctors", {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-        const result = await response.json();
-        const doctors = result.data || [];
+        try {
+            const response = await fetch("/api/doctors", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const result = await response.json();
+            const doctors = result.data || [];
 
-        const select = document.getElementById("doctorId");
-        doctors.forEach(d => {
-            const option = document.createElement("option");
-            option.value = d.id;
-            option.textContent = `${d.name} (${d.specialization})`;
-            select.appendChild(option);
-        });
+            const select = document.getElementById("doctorId");
+            doctors.forEach(d => {
+                const option = document.createElement("option");
+                option.value = d.id;
+                option.textContent = `${d.name} (${d.specialization})`;
+                select.appendChild(option);
+            });
+        } catch (err) {
+            document.getElementById("errorMsg").textContent = "Could not connect to the server. Please check your connection and try again.";
+        }
     }
 
     const form = document.getElementById("bookAppointmentForm");
@@ -97,6 +106,10 @@
         e.preventDefault();
         errorMsg.textContent = "";
 
+        const btn = form.querySelector("button[type=submit]");
+        btn.disabled = true;
+        btn.textContent = "Booking...";
+
         const appointment = {
             patientId: parseInt(document.getElementById("patientId").value),
             doctorId: parseInt(document.getElementById("doctorId").value),
@@ -104,23 +117,30 @@
             notes: document.getElementById("notes").value
         };
 
-        const response = await fetch("/api/appointments", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify(appointment)
-        });
+        try {
+            const response = await fetch("/api/appointments", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(appointment)
+            });
 
-        const result = await response.json();
+            const result = await response.json();
 
-        if (!response.ok) {
-            errorMsg.textContent = result.message || "Failed to book appointment.";
-            return;
+            if (!response.ok) {
+                errorMsg.textContent = result.message || "Failed to book appointment.";
+            } else {
+                window.location.href = "/Appointment/Index";
+                return;
+            }
+        } catch (err) {
+            errorMsg.textContent = "Could not connect to the server. Please check your connection and try again.";
         }
 
-        window.location.href = "/Appointment/Index";
+        btn.disabled = false;
+        btn.textContent = "Book Appointment";
     });
 
     loadPatients();

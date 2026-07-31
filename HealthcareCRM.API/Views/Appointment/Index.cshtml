@@ -13,6 +13,7 @@
         <option value="Confirmed">Confirmed</option>
         <option value="Cancelled">Cancelled</option>
     </select>
+    <button id="exportPdfBtn" class="btn-cancel" style="display:none;">Export PDF Report</button>
     <a href="/Appointment/Create" class="btn-add">+ Book Appointment</a>
 </div>
 
@@ -135,6 +136,32 @@
     document.getElementById("statusFilter").addEventListener("change", (e) => {
         loadAppointments(e.target.value);
     });
+const decoded = token ? JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))) : null;
+const role = decoded ? decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] : null;
 
+if (role === "Admin") {
+    document.getElementById("exportPdfBtn").style.display = "inline-flex";
+}
+
+document.getElementById("exportPdfBtn").addEventListener("click", async () => {
+    const response = await fetch("/api/export/appointments/report", {
+        headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+        alert("Failed to export appointment report.");
+        return;
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "appointment_report.pdf";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+});
     loadAppointments();
 </script>
