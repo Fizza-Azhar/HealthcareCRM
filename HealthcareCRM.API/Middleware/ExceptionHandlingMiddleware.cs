@@ -22,14 +22,27 @@ namespace HealthcareCRM.API.Middleware
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unhandled exception");
                 context.Response.ContentType = "application/json";
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+
+                var (statusCode, message) = ex switch
+                {
+                    ArgumentException => (HttpStatusCode.BadRequest, ex.Message),
+                    KeyNotFoundException => (HttpStatusCode.NotFound, "Resource not found."),
+                    UnauthorizedAccessException => (HttpStatusCode.Forbidden, "Access denied."),
+                    _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred. Please try again.")
+                };
+
+                if (statusCode == HttpStatusCode.InternalServerError)
+                    _logger.LogError(ex, "Unhandled exception");
+                else
+                    _logger.LogWarning(ex, "Handled exception: {Message}", ex.Message);
+
+                context.Response.StatusCode = (int)statusCode;
 
                 var result = JsonSerializer.Serialize(new
                 {
                     success = false,
-                    message = "An unexpected error occurred. Please try again.",
+                    message,
                     data = (object?)null
                 });
 
