@@ -12,6 +12,7 @@
     <label id="showInactiveWrapper" style="display:none; align-items:center; gap:6px; font-size:14px;">
         <input type="checkbox" id="showInactive" /> Show inactive
     </label>
+    <button id="exportCsvBtn" class="btn-cancel" style="display:none;">Export CSV</button>
     <a class="btn-add" href="/Patient/Create">+ Add New Patient</a>
 </div>
 
@@ -51,7 +52,28 @@ const role = decoded ? decoded["http://schemas.microsoft.com/ws/2008/06/identity
 
 if (role === "Admin") {
     document.getElementById("showInactiveWrapper").style.display = "flex";
+    document.getElementById("exportCsvBtn").style.display = "inline-flex";
 }
+document.getElementById("exportCsvBtn").addEventListener("click", async () => {
+    const response = await fetch("/api/export/patients/export?format=csv", {
+        headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+        alert("Failed to export patients.");
+        return;
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "patients_export.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+});
 
 document.getElementById("showInactive")?.addEventListener("change", () => {
     loadPatients(1);

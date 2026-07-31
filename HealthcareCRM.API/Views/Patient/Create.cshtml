@@ -63,8 +63,13 @@
         window.location.href = "/Account/Login";
     }
 
-    document.getElementById("createForm").addEventListener("submit", async function (event) {
+    const form = document.getElementById("createForm");
+    form.addEventListener("submit", async function (event) {
         event.preventDefault();
+
+        const btn = form.querySelector("button[type=submit]");
+        btn.disabled = true;
+        btn.textContent = "Saving...";
 
         const patient = {
             firstName: document.getElementById("firstName").value,
@@ -75,20 +80,28 @@
             email: document.getElementById("email").value
         };
 
-        const response = await fetch("/api/patients", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify(patient)
-        });
+        try {
+            const response = await fetch("/api/patients", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(patient)
+            });
 
-        if (response.ok) {
-    window.location.href = "/Patient";
-} else {
-    const result = await response.json().catch(() => ({}));
-    document.getElementById("errorMsg").textContent = result.message || "Failed to add patient.";
-}
+            if (response.ok) {
+                window.location.href = "/Patient";
+                return;
+            } else {
+                const result = await response.json().catch(() => ({}));
+                document.getElementById("errorMsg").textContent = result.message || "Failed to add patient.";
+            }
+        } catch (err) {
+            document.getElementById("errorMsg").textContent = "Could not connect to the server. Please check your connection and try again.";
+        }
+
+        btn.disabled = false;
+        btn.textContent = "Save Patient";
     });
 </script>
