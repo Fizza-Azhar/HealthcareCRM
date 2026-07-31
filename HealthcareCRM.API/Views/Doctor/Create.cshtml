@@ -43,7 +43,6 @@
         </form>
     </div>
 </div>
-
 <script>
 
     if (!token) {
@@ -57,6 +56,10 @@
         e.preventDefault();
         errorMsg.textContent = "";
 
+        const btn = form.querySelector("button[type=submit]");
+        btn.disabled = true;
+        btn.textContent = "Saving...";
+
         const doctor = {
             name: document.getElementById("name").value,
             specialization: document.getElementById("specialization").value,
@@ -64,22 +67,29 @@
             scheduleDays: document.getElementById("scheduleDays").value
         };
 
-        const response = await fetch("/api/doctors", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify(doctor)
-        });
+        try {
+            const response = await fetch("/api/doctors", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(doctor)
+            });
 
-        const result = await response.json();
+            const result = await response.json();
 
-        if (!response.ok) {
-            errorMsg.textContent = result.message || "Failed to create doctor.";
-            return;
+            if (!response.ok) {
+                errorMsg.textContent = result.message || "Failed to create doctor.";
+            } else {
+                window.location.href = "/Doctor/Index";
+                return;
+            }
+        } catch (err) {
+            errorMsg.textContent = "Could not connect to the server. Please check your connection and try again.";
         }
 
-        window.location.href = "/Doctor/Index";
+        btn.disabled = false;
+        btn.textContent = "Save Doctor";
     });
 </script>

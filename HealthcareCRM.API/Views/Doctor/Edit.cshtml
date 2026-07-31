@@ -59,30 +59,36 @@
     const errorMsg = document.getElementById("errorMsg");
 
     async function loadDoctor() {
-        const response = await fetch(`/api/doctors/${doctorId}`, {
-            headers: {
-                "Authorization": `Bearer ${token}`
+        try {
+            const response = await fetch(`/api/doctors/${doctorId}`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                errorMsg.textContent = result.message || "Doctor not found.";
+                return;
             }
-        });
 
-        const result = await response.json();
-
-        if (!response.ok) {
-            errorMsg.textContent = result.message || "Doctor not found.";
-            return;
+            const doctor = result.data;
+            document.getElementById("doctorId").value = doctor.id;
+            document.getElementById("name").value = doctor.name;
+            document.getElementById("specialization").value = doctor.specialization;
+            document.getElementById("phone").value = doctor.phone;
+            document.getElementById("scheduleDays").value = doctor.scheduleDays;
+        } catch (err) {
+            errorMsg.textContent = "Could not connect to the server. Please check your connection and try again.";
         }
-
-        const doctor = result.data;
-        document.getElementById("doctorId").value = doctor.id;
-        document.getElementById("name").value = doctor.name;
-        document.getElementById("specialization").value = doctor.specialization;
-        document.getElementById("phone").value = doctor.phone;
-        document.getElementById("scheduleDays").value = doctor.scheduleDays;
     }
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
         errorMsg.textContent = "";
+
+        const btn = form.querySelector("button[type=submit]");
+        btn.disabled = true;
+        btn.textContent = "Saving...";
 
         const updated = {
             id: parseInt(doctorId),
@@ -92,23 +98,30 @@
             scheduleDays: document.getElementById("scheduleDays").value
         };
 
-        const response = await fetch(`/api/doctors/${doctorId}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify(updated)
-        });
+        try {
+            const response = await fetch(`/api/doctors/${doctorId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(updated)
+            });
 
-        const result = await response.json();
+            const result = await response.json();
 
-        if (!response.ok) {
-            errorMsg.textContent = result.message || "Failed to update doctor.";
-            return;
+            if (!response.ok) {
+                errorMsg.textContent = result.message || "Failed to update doctor.";
+            } else {
+                window.location.href = "/Doctor/Index";
+                return;
+            }
+        } catch (err) {
+            errorMsg.textContent = "Could not connect to the server. Please check your connection and try again.";
         }
 
-        window.location.href = "/Doctor/Index";
+        btn.disabled = false;
+        btn.textContent = "Update Doctor";
     });
 
     loadDoctor();
