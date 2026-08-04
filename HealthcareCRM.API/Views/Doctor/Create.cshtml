@@ -9,32 +9,36 @@
         <h2>Add Doctor</h2>
         <p class="page-subtitle">Enter the doctor's details below.</p>
 
-        <form id="createDoctorForm">
+        <form id="createDoctorForm" novalidate>
             <div class="form-grid">
-                <div class="full-width">
-                    <label>Name</label>
-                    <input type="text" id="name" required />
-                </div>
+    <div class="full-width">
+        <label>Name</label>
+        <input type="text" id="name" required />
+        <p id="nameError" class="error-text"></p>
+    </div>
 
-                <div>
-                    <label>Specialization</label>
-                    <input type="text" id="specialization" required />
-                </div>
+    <div>
+        <label>Specialization</label>
+        <input type="text" id="specialization" required />
+        <p id="specializationError" class="error-text"></p>
+    </div>
 
-                <div>
-                    <label>Phone</label>
-                    <input type="text" id="phone" required />
-                </div>
+    <div>
+        <label>Phone</label>
+        <input type="text" id="phone" required />
+        <p id="phoneError" class="error-text"></p>
+    </div>
 
-                <div class="full-width">
-                    <label>Schedule Days</label>
-                    <input type="text" id="scheduleDays" placeholder="e.g. Mon,Wed,Fri" required />
-                </div>
+    <div class="full-width">
+        <label>Schedule Days</label>
+        <input type="text" id="scheduleDays" placeholder="e.g. Mon,Wed,Fri" required />
+        <p id="scheduleDaysError" class="error-text"></p>
+    </div>
 
-                <div class="full-width">
-                    <p id="errorMsg" class="error-text"></p>
-                </div>
-            </div>
+    <div class="full-width">
+        <p id="errorMsg" class="error-text"></p>
+    </div>
+</div>
 
             <div class="form-actions">
                 <button type="submit">Save Doctor</button>
@@ -51,12 +55,40 @@
 
     const form = document.getElementById("createDoctorForm");
     const errorMsg = document.getElementById("errorMsg");
+function clearFieldErrors() {
+    document.querySelectorAll(".error-text").forEach(el => el.textContent = "");
+}
 
+function validateDoctorForm() {
+    clearFieldErrors();
+    let valid = true;
+
+    if (!document.getElementById("name").value.trim()) {
+        document.getElementById("nameError").textContent = "Name is required.";
+        valid = false;
+    }
+    if (!document.getElementById("specialization").value.trim()) {
+        document.getElementById("specializationError").textContent = "Specialization is required.";
+        valid = false;
+    }
+    if (!document.getElementById("phone").value.trim()) {
+        document.getElementById("phoneError").textContent = "Phone is required.";
+        valid = false;
+    }
+    if (!document.getElementById("scheduleDays").value.trim()) {
+        document.getElementById("scheduleDaysError").textContent = "Schedule days are required.";
+        valid = false;
+    }
+
+    return valid;
+}
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        errorMsg.textContent = "";
+errorMsg.textContent = "";
 
-        const btn = form.querySelector("button[type=submit]");
+if (!validateDoctorForm()) return;
+
+const btn = form.querySelector("button[type=submit]");
         btn.disabled = true;
         btn.textContent = "Saving...";
 

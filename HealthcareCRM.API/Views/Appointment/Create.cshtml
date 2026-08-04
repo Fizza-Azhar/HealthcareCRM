@@ -8,36 +8,39 @@
         <h2>Book Appointment</h2>
         <p class="page-subtitle">Select a patient, doctor, and appointment time.</p>
 
-        <form id="bookAppointmentForm">
+        <form id="bookAppointmentForm" novalidate>
             <div class="form-grid">
-                <div class="full-width">
-                    <label>Patient</label>
-                    <select id="patientId" required>
-                        <option value="">Select a patient...</option>
-                    </select>
-                </div>
+    <div class="full-width">
+        <label>Patient</label>
+        <select id="patientId" required>
+            <option value="">Select a patient...</option>
+        </select>
+        <p id="patientIdError" class="error-text"></p>
+    </div>
 
-                <div class="full-width">
-                    <label>Doctor</label>
-                    <select id="doctorId" required>
-                        <option value="">Select a doctor...</option>
-                    </select>
-                </div>
+    <div class="full-width">
+        <label>Doctor</label>
+        <select id="doctorId" required>
+            <option value="">Select a doctor...</option>
+        </select>
+        <p id="doctorIdError" class="error-text"></p>
+    </div>
 
-                <div class="full-width">
-                    <label>Date & Time</label>
-                    <input type="datetime-local" id="dateTime" required />
-                </div>
+    <div class="full-width">
+        <label>Date & Time</label>
+        <input type="datetime-local" id="dateTime" required />
+        <p id="dateTimeError" class="error-text"></p>
+    </div>
 
-                <div class="full-width">
-                    <label>Notes</label>
-                    <input type="text" id="notes" placeholder="Optional notes..." />
-                </div>
+    <div class="full-width">
+        <label>Notes</label>
+        <input type="text" id="notes" placeholder="Optional notes..." />
+    </div>
 
-                <div class="full-width">
-                    <p id="errorMsg" style="color: var(--danger);"></p>
-                </div>
-            </div>
+    <div class="full-width">
+        <p id="errorMsg" style="color: var(--danger);"></p>
+    </div>
+</div>
 
             <div class="form-actions">
                 <button type="submit">Book Appointment</button>
@@ -101,14 +104,42 @@
 
     const form = document.getElementById("bookAppointmentForm");
     const errorMsg = document.getElementById("errorMsg");
+function clearFieldErrors() {
+    document.querySelectorAll(".error-text").forEach(el => el.textContent = "");
+}
 
+function validateAppointmentForm() {
+    clearFieldErrors();
+    let valid = true;
+
+    if (!document.getElementById("patientId").value) {
+        document.getElementById("patientIdError").textContent = "Please select a patient.";
+        valid = false;
+    }
+    if (!document.getElementById("doctorId").value) {
+        document.getElementById("doctorIdError").textContent = "Please select a doctor.";
+        valid = false;
+    }
+    const dateTimeVal = document.getElementById("dateTime").value;
+    if (!dateTimeVal) {
+        document.getElementById("dateTimeError").textContent = "Please choose a date and time.";
+        valid = false;
+    } else if (new Date(dateTimeVal) < new Date()) {
+        document.getElementById("dateTimeError").textContent = "Appointment time cannot be in the past.";
+        valid = false;
+    }
+
+    return valid;
+}
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        errorMsg.textContent = "";
+errorMsg.textContent = "";
 
-        const btn = form.querySelector("button[type=submit]");
-        btn.disabled = true;
-        btn.textContent = "Booking...";
+if (!validateAppointmentForm()) return;
+
+const btn = form.querySelector("button[type=submit]");
+btn.disabled = true;
+btn.textContent = "Booking...";
 
         const appointment = {
             patientId: parseInt(document.getElementById("patientId").value),

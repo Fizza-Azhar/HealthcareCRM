@@ -11,15 +11,17 @@
         <h2>Welcome back</h2>
         <p class="auth-subtitle">Sign in to manage your patients</p>
 
-        <form id="loginForm">
+        <form id="loginForm" novalidate>
             <div>
                 <label>Email</label><br />
                 <input type="email" id="email" required />
+                <p id="emailError" class="error-text"></p>
             </div>
 
             <div>
                 <label>Password</label><br />
                 <input type="password" id="password" required />
+                <p id="passwordError" class="error-text"></p>
             </div>
 
             <button type="submit">Login</button>
@@ -35,66 +37,73 @@
 
 <script>
 
-document.getElementById("loginForm").addEventListener("submit", async function (event) {
+function clearFieldErrors() {
+    document.querySelectorAll(".error-text").forEach(el => el.textContent = "");
+}
 
+function validateLoginForm() {
+    clearFieldErrors();
+    let valid = true;
+
+    const email = document.getElementById("email").value.trim();
+    if (!email) {
+        document.getElementById("emailError").textContent = "Please fill out this field.";
+        valid = false;
+    } else if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
+        document.getElementById("emailError").textContent = "Please enter a valid email address.";
+        valid = false;
+    }
+
+    const password = document.getElementById("password").value;
+    if (!password) {
+        document.getElementById("passwordError").textContent = "Please fill out this field.";
+        valid = false;
+    } else if (password.length < 6) {
+        document.getElementById("passwordError").textContent = "Password must be at least 6 characters long.";
+        valid = false;
+    }
+
+    return valid;
+}
+
+document.getElementById("loginForm").addEventListener("submit", async function (event) {
     event.preventDefault();
+
+    if (!validateLoginForm()) return;
 
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
 
-    // Email validation
-    if (email === "") {
-        document.getElementById("message").innerText = "Email is required.";
-        return;
+    const btn = document.querySelector("#loginForm button[type=submit]");
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Logging in...";
+    document.getElementById("message").innerText = "";
+
+    try {
+        const response = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (data.token) {
+            localStorage.setItem("token", data.token);
+            const payload = JSON.parse(atob(data.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            const role = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+            window.location.href = role === "Admin" ? "/Dashboard" : "/";
+        } else {
+            document.getElementById("message").innerText = data.message;
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    } catch (err) {
+        document.getElementById("message").innerText = "Could not connect to the server. Please check your connection and try again.";
+        btn.disabled = false;
+        btn.textContent = originalText;
     }
-
-    // Email format validation
-    const emailPattern = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
-
-    if (!emailPattern.test(email)) {
-        document.getElementById("message").innerText = "Please enter a valid email address.";
-        return;
-    }
-
-    // Password validation
-    if (password === "") {
-        document.getElementById("message").innerText = "Password is required.";
-        return;
-    }
-
-    if (password.length < 6) {
-        document.getElementById("message").innerText = "Password must be at least 6 characters long.";
-        return;
-    }
-
-    const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            email: email,
-            password: password
-        })
-    });
-
-    const data = await response.json();
-
-   if (data.token) {
-    localStorage.setItem("token", data.token);
-
-    const payload = JSON.parse(atob(data.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-    const role = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
-
-    if (role === "Admin") {
-        window.location.href = "/Dashboard";
-    } else {
-        window.location.href = "/";
-    }
-} else {
-    document.getElementById("message").innerText = data.message;
-}
-
 });
 
 </script>
