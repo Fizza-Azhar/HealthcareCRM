@@ -138,5 +138,89 @@ namespace HealthcareCRM.Tests
 
             Assert.IsType<UnauthorizedObjectResult>(result);
         }
+        [Fact]
+public async Task Register_MissingFirstName_StillCreatesUser_NoServerValidation()
+{
+    // Exposes a real gap: AuthController.Register doesn't check ModelState.IsValid
+    var controller = CreateController(out var context);
+    var request = new RegisterRequest
+    {
+        FirstName = "",
+        LastName = "User",
+        Email = "nofirstname@example.com",
+        Password = "Password123"
+    };
+
+    var result = await controller.Register(request);
+
+    // Documents actual current behavior — if this fails after you add validation, that's expected and good
+    Assert.IsType<OkObjectResult>(result);
+}
+
+[Fact]
+public async Task Register_EmptyPassword_HashesEmptyStringInsteadOfRejecting()
+{
+    var controller = CreateController(out var context);
+    var request = new RegisterRequest
+    {
+        FirstName = "Test",
+        LastName = "User",
+        Email = "emptypass@example.com",
+        Password = ""
+    };
+
+    var result = await controller.Register(request);
+
+    Assert.IsType<OkObjectResult>(result);
+    var userInDb = await context.Users.FirstOrDefaultAsync(u => u.Email == "emptypass@example.com");
+    Assert.NotNull(userInDb);
+}
+
+[Fact]
+public async Task Login_EmptyEmail_ReturnsUnauthorized()
+{
+    var controller = CreateController(out var context);
+    var request = new LoginRequest { Email = "", Password = "Whatever123" };
+
+    var result = await controller.Login(request);
+
+    Assert.IsType<UnauthorizedObjectResult>(result);
+}
+
+[Fact]
+public async Task Login_EmptyPassword_ReturnsUnauthorized()
+{
+    var controller = CreateController(out var context);
+    var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<User>();
+    var user = new User { FirstName = "Test", LastName = "User", Email = "emptypwlogin@example.com" };
+    user.PasswordHash = hasher.HashPassword(user, "RealPassword123");
+    context.Users.Add(user);
+    await context.SaveChangesAsync();
+
+    var request = new LoginRequest { Email = "emptypwlogin@example.com", Password = "" };
+
+    var result = await controller.Login(request);
+
+    Assert.IsType<UnauthorizedObjectResult>(result);
+}
+
+[Fact]
+public async Task Register_ReturnsExactSuccessMessage()
+{
+    var controller = CreateController(out var context);
+    var request = new RegisterRequest
+    {
+        FirstName = "Msg",
+        LastName = "Check",
+        Email = "msgcheck@example.com",
+        Password = "Password123"
+    };
+
+    var result = await controller.Register(request);
+
+    var ok = Assert.IsType<OkObjectResult>(result);
+    var json = System.Text.Json.JsonSerializer.Serialize(ok.Value);
+    Assert.Contains("Registration successful", json);
+}
     }
 }

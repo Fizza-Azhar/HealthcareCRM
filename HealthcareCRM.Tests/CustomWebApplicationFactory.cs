@@ -9,16 +9,19 @@ namespace HealthcareCRM.Tests
 {
     public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
+        // Generated ONCE per factory instance (constructor-time field init),
+        // NOT inside ConfigureServices. WebApplicationFactory can invoke the
+        // ConfigureWebHost/ConfigureServices callback more than once internally
+        // (e.g. when .Services is accessed before CreateClient() builds the
+        // real test server) — if the db name were generated inside that lambda,
+        // each invocation would produce a different empty in-memory database,
+        // meaning seeded data and the actual HTTP request could land in two
+        // different databases. Fixing the name here guarantees every rebuild
+        // of the host still points at the exact same in-memory database.
+        private readonly string _dbName = "RbacTestDb_" + Guid.NewGuid();
+
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            // NOTE: we do NOT override Jwt:Key/Issuer/Audience here.
-            // Program.cs reads those values into local variables before
-            // app.Build() runs, so a config override added here arrives
-            // too late to affect token signing/validation. Instead, tests
-            // read the REAL Jwt settings from the running app's own
-            // configuration (see RbacTests.cs) and sign test tokens with
-            // those same real values.
-
             builder.ConfigureServices(services =>
             {
                 var descriptor = services.SingleOrDefault(
@@ -27,7 +30,7 @@ namespace HealthcareCRM.Tests
                     services.Remove(descriptor);
 
                 services.AddDbContext<AppDbContext>(options =>
-                    options.UseInMemoryDatabase("RbacTestDb_" + Guid.NewGuid()));
+                    options.UseInMemoryDatabase(_dbName));
             });
         }
     }

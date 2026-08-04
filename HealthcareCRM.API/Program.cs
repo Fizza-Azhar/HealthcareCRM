@@ -131,3 +131,4 @@ app.MapGet("/api/health", () =>
 .WithOpenApi();
 
 app.Run();
+public partial class Program { }

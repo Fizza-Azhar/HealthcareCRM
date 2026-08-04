@@ -76,7 +76,7 @@ namespace HealthcareCRM.Tests
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        [Fact(Skip = "Known issue: Admin-token deactivate returns 404 in test pipeline (seeded entity not visible to request). Carry-forward — investigating DbContext registration in test host. See RbacTests notes.")]
+        [Fact]
         public async Task DeactivateDoctor_AdminToken_ReturnsOk()
         {
             var (client, doctorId, _) = await SetupAsync("Admin");
@@ -108,7 +108,7 @@ namespace HealthcareCRM.Tests
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
-        [Fact(Skip = "Known issue: Admin-token deactivate returns 404 in test pipeline (seeded entity not visible to request). Carry-forward — investigating DbContext registration in test host. See RbacTests notes.")]
+        [Fact]
         public async Task DeactivatePatient_AdminToken_ReturnsOk()
         {
             var (client, _, patientId) = await SetupAsync("Admin");
