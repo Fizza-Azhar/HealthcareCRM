@@ -103,9 +103,10 @@
     <td><span class="tag ${appt.status === 'Confirmed' ? 'tag-green' : appt.status === 'Cancelled' ? 'tag-red' : 'tag-yellow'}">${appt.status}</span></td>
     <td>${appt.notes || "-"}</td>
     <td>
-        ${appt.status !== "Confirmed" ? `<button onclick="updateStatus(${appt.id}, 'Confirmed')">Confirm</button>` : ""}
-        ${appt.status !== "Cancelled" ? `<button onclick="cancelAppointment(${appt.id})">Cancel</button>` : ""}
-    </td>
+    ${appt.status !== "Confirmed" ? `<button onclick="updateStatus(${appt.id}, 'Confirmed')">Confirm</button>` : ""}
+    ${appt.status !== "Cancelled" ? `<button onclick="cancelAppointment(${appt.id})">Cancel</button>` : ""}
+    <button onclick="deleteAppointment(${appt.id})" class="btn-danger">Delete</button>
+</td>
 </tr>
 `;
         });
@@ -132,6 +133,22 @@
         if (!confirm("Cancel this appointment?")) return;
         await updateStatus(id, "Cancelled");
     }
+    async function deleteAppointment(id) {
+    if (!confirm("Delete this appointment permanently? This cannot be undone.")) return;
+
+    const response = await fetch(`/api/appointments/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    });
+
+    if (response.ok) {
+        loadAppointments(document.getElementById("statusFilter").value);
+    } else {
+        alert("Failed to delete appointment.");
+    }
+}
 
     document.getElementById("statusFilter").addEventListener("change", (e) => {
         loadAppointments(e.target.value);
@@ -163,5 +180,6 @@ document.getElementById("exportPdfBtn").addEventListener("click", async () => {
     a.remove();
     window.URL.revokeObjectURL(url);
 });
+
     loadAppointments();
 </script>
