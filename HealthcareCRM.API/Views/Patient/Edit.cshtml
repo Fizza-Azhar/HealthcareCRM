@@ -10,7 +10,7 @@
         <h2>Edit Patient</h2>
         <p class="page-subtitle">Update this patient's information.</p>
 
-        <form id="editForm">
+        <form id="editForm" novalidate>
 
             <input type="hidden" id="id" />
 
@@ -18,16 +18,19 @@
                 <div>
                     <label>First Name</label><br />
                     <input type="text" id="firstName" required />
+                    <p id="firstNameError" class="error-text"></p>
                 </div>
 
                 <div>
                     <label>Last Name</label><br />
                     <input type="text" id="lastName" required />
+                    <p id="lastNameError" class="error-text"></p>
                 </div>
 
                 <div>
                     <label>Age</label><br />
                     <input type="number" id="age" required />
+                    <p id="ageError" class="error-text"></p>
                 </div>
 
                 <div>
@@ -38,16 +41,19 @@
                         <option value="Female">Female</option>
                         <option value="Other">Other</option>
                     </select>
+                    <p id="genderError" class="error-text"></p>
                 </div>
 
                 <div>
                     <label>Phone Number</label><br />
                     <input type="text" id="phoneNumber" />
+                    <p id="phoneNumberError" class="error-text"></p>
                 </div>
 
                 <div>
                     <label>Email</label><br />
                     <input type="email" id="email" />
+                    <p id="emailError" class="error-text"></p>
                 </div>
             </div>
 
@@ -72,32 +78,75 @@
     const patientId = params.get("id");
 
     async function loadPatient() {
-        const response = await fetch(`/api/patients/${patientId}`, {
-            headers: {
-                "Authorization": `Bearer ${token}`
+        try {
+            const response = await fetch(`/api/patients/${patientId}`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            if (!response.ok) {
+                document.getElementById("errorMsg").textContent = "Failed to load patient.";
+                return;
             }
-        });
+            const result = await response.json();
+            const patient = result.data;
 
-        if (!response.ok) {
-        document.getElementById("errorMsg").textContent = "Failed to load patient.";
-        return;
-}
-        const result = await response.json();
-        const patient = result.data;
-
-        document.getElementById("id").value = patient.id;
-        document.getElementById("firstName").value = patient.firstName;
-        document.getElementById("lastName").value = patient.lastName;
-        document.getElementById("age").value = patient.age;
-        document.getElementById("gender").value = patient.gender;
-        document.getElementById("phoneNumber").value = patient.phoneNumber;
-        document.getElementById("email").value = patient.email;
+            document.getElementById("id").value = patient.id;
+            document.getElementById("firstName").value = patient.firstName;
+            document.getElementById("lastName").value = patient.lastName;
+            document.getElementById("age").value = patient.age;
+            document.getElementById("gender").value = patient.gender;
+            document.getElementById("phoneNumber").value = patient.phoneNumber;
+            document.getElementById("email").value = patient.email;
+        } catch (err) {
+            document.getElementById("errorMsg").textContent = "Could not connect to the server. Please check your connection and try again.";
+        }
     }
 
     loadPatient();
+function clearFieldErrors() {
+    document.querySelectorAll(".error-text").forEach(el => el.textContent = "");
+}
 
-    document.getElementById("editForm").addEventListener("submit", async function (event) {
+function validatePatientForm() {
+    clearFieldErrors();
+    let valid = true;
+
+    if (!document.getElementById("firstName").value.trim()) {
+        document.getElementById("firstNameError").textContent = "First name is required.";
+        valid = false;
+    }
+    if (!document.getElementById("lastName").value.trim()) {
+        document.getElementById("lastNameError").textContent = "Last name is required.";
+        valid = false;
+    }
+    const age = document.getElementById("age").value;
+    if (!age || age < 0 || age > 120) {
+        document.getElementById("ageError").textContent = "Enter a valid age (0-120).";
+        valid = false;
+    }
+    if (!document.getElementById("gender").value) {
+        document.getElementById("genderError").textContent = "Please select a gender.";
+        valid = false;
+    }
+    if (!document.getElementById("phoneNumber").value.trim()) {
+        document.getElementById("phoneNumberError").textContent = "Phone number is required.";
+        valid = false;
+    }
+    const email = document.getElementById("email").value.trim();
+    if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
+        document.getElementById("emailError").textContent = "Enter a valid email address.";
+        valid = false;
+    }
+
+    return valid;
+}
+    const form = document.getElementById("editForm");
+    form.addEventListener("submit", async function (event) {
         event.preventDefault();
+        if (!validatePatientForm()) return;
+        const btn = form.querySelector("button[type=submit]");
+        btn.disabled = true;
+        btn.textContent = "Saving...";
 
         const patient = {
             id: parseInt(document.getElementById("id").value),
@@ -109,20 +158,28 @@
             email: document.getElementById("email").value
         };
 
-        const response = await fetch(`/api/patients/${patient.id}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify(patient)
-        });
+        try {
+            const response = await fetch(`/api/patients/${patient.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(patient)
+            });
 
-        if (response.ok) {
-    window.location.href = "/Patient";
-} else {
-    const result = await response.json().catch(() => ({}));
-    document.getElementById("errorMsg").textContent = result.message || "Failed to update patient.";
-}
+            if (response.ok) {
+                window.location.href = "/Patient";
+                return;
+            } else {
+                const result = await response.json().catch(() => ({}));
+                document.getElementById("errorMsg").textContent = result.message || "Failed to update patient.";
+            }
+        } catch (err) {
+            document.getElementById("errorMsg").textContent = "Could not connect to the server. Please check your connection and try again.";
+        }
+
+        btn.disabled = false;
+        btn.textContent = "Update Patient";
     });
 </script>

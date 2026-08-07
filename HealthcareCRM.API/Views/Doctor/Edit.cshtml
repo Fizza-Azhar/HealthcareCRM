@@ -8,36 +8,38 @@
     <div class="form-page-inner">
         <h2>Edit Doctor</h2>
         <p class="page-subtitle">Update the doctor's details below.</p>
-
-        <form id="editDoctorForm">
+        <form id="editDoctorForm" novalidate>
             <input type="hidden" id="doctorId" />
 
             <div class="form-grid">
-                <div class="full-width">
-                    <label>Name</label>
-                    <input type="text" id="name" required />
-                </div>
+    <div class="full-width">
+        <label>Name</label>
+        <input type="text" id="name" required />
+        <p id="nameError" class="error-text"></p>
+    </div>
 
-                <div>
-                    <label>Specialization</label>
-                    <input type="text" id="specialization" required />
-                </div>
+    <div>
+        <label>Specialization</label>
+        <input type="text" id="specialization" required />
+        <p id="specializationError" class="error-text"></p>
+    </div>
 
-                <div>
-                    <label>Phone</label>
-                    <input type="text" id="phone" required />
-                </div>
+    <div>
+        <label>Phone</label>
+        <input type="text" id="phone" required />
+        <p id="phoneError" class="error-text"></p>
+    </div>
 
-                <div class="full-width">
-                    <label>Schedule Days</label>
-                    <input type="text" id="scheduleDays" required />
-                </div>
+    <div class="full-width">
+        <label>Schedule Days</label>
+        <input type="text" id="scheduleDays" required />
+        <p id="scheduleDaysError" class="error-text"></p>
+    </div>
 
-                <div class="full-width">
-                    <p id="errorMsg" class="error-text"></p>
-                </div>
-            </div>
-
+    <div class="full-width">
+        <p id="errorMsg" class="error-text"></p>
+    </div>
+</div>
             <div class="form-actions">
                 <button type="submit">Update Doctor</button>
                 <a href="/Doctor/Index" class="btn-cancel">Cancel</a>
@@ -59,30 +61,64 @@
     const errorMsg = document.getElementById("errorMsg");
 
     async function loadDoctor() {
-        const response = await fetch(`/api/doctors/${doctorId}`, {
-            headers: {
-                "Authorization": `Bearer ${token}`
+        try {
+            const response = await fetch(`/api/doctors/${doctorId}`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                errorMsg.textContent = result.message || "Doctor not found.";
+                return;
             }
-        });
 
-        const result = await response.json();
-
-        if (!response.ok) {
-            errorMsg.textContent = result.message || "Doctor not found.";
-            return;
+            const doctor = result.data;
+            document.getElementById("doctorId").value = doctor.id;
+            document.getElementById("name").value = doctor.name;
+            document.getElementById("specialization").value = doctor.specialization;
+            document.getElementById("phone").value = doctor.phone;
+            document.getElementById("scheduleDays").value = doctor.scheduleDays;
+        } catch (err) {
+            errorMsg.textContent = "Could not connect to the server. Please check your connection and try again.";
         }
+    }
+function clearFieldErrors() {
+    document.querySelectorAll(".error-text").forEach(el => el.textContent = "");
+}
 
-        const doctor = result.data;
-        document.getElementById("doctorId").value = doctor.id;
-        document.getElementById("name").value = doctor.name;
-        document.getElementById("specialization").value = doctor.specialization;
-        document.getElementById("phone").value = doctor.phone;
-        document.getElementById("scheduleDays").value = doctor.scheduleDays;
+function validateDoctorForm() {
+    clearFieldErrors();
+    let valid = true;
+
+    if (!document.getElementById("name").value.trim()) {
+        document.getElementById("nameError").textContent = "Name is required.";
+        valid = false;
+    }
+    if (!document.getElementById("specialization").value.trim()) {
+        document.getElementById("specializationError").textContent = "Specialization is required.";
+        valid = false;
+    }
+    if (!document.getElementById("phone").value.trim()) {
+        document.getElementById("phoneError").textContent = "Phone is required.";
+        valid = false;
+    }
+    if (!document.getElementById("scheduleDays").value.trim()) {
+        document.getElementById("scheduleDaysError").textContent = "Schedule days are required.";
+        valid = false;
     }
 
+    return valid;
+}
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        errorMsg.textContent = "";
+errorMsg.textContent = "";
+
+if (!validateDoctorForm()) return;
+
+const btn = form.querySelector("button[type=submit]");
+btn.disabled = true;
+btn.textContent = "Saving...";
 
         const updated = {
             id: parseInt(doctorId),
@@ -92,23 +128,30 @@
             scheduleDays: document.getElementById("scheduleDays").value
         };
 
-        const response = await fetch(`/api/doctors/${doctorId}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify(updated)
-        });
+        try {
+            const response = await fetch(`/api/doctors/${doctorId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(updated)
+            });
 
-        const result = await response.json();
+            const result = await response.json();
 
-        if (!response.ok) {
-            errorMsg.textContent = result.message || "Failed to update doctor.";
-            return;
+            if (!response.ok) {
+                errorMsg.textContent = result.message || "Failed to update doctor.";
+            } else {
+                window.location.href = "/Doctor/Index";
+                return;
+            }
+        } catch (err) {
+            errorMsg.textContent = "Could not connect to the server. Please check your connection and try again.";
         }
 
-        window.location.href = "/Doctor/Index";
+        btn.disabled = false;
+        btn.textContent = "Update Doctor";
     });
 
     loadDoctor();

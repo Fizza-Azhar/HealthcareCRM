@@ -5,6 +5,7 @@ using HealthcareCRM.API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace HealthcareCRM.API.Controllers
 {
@@ -25,7 +26,7 @@ namespace HealthcareCRM.API.Controllers
         public async Task<IActionResult> GetUsers()
         {
             var users = await _context.Users
-                .Select(u => new { u.Id, u.FirstName, u.LastName, u.Email, u.Role })
+                .Select(u => new { u.Id, u.FirstName, u.LastName, u.Email, u.Role, u.IsActive })
                 .ToListAsync();
 
             return Ok(ApiResponse<object>.Ok(users));
@@ -45,8 +46,40 @@ namespace HealthcareCRM.API.Controllers
 
             user.Role = dto.Role;
             await _context.SaveChangesAsync();
+            await LogAction("RoleChanged", id);
 
             return Ok(ApiResponse<string>.Ok(user.Role, "Role updated successfully."));
+        }
+
+        // PUT: api/users/{id}/toggle-active
+        [HttpPut("{id}/toggle-active")]
+        public async Task<IActionResult> ToggleActive(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+                return NotFound(ApiResponse<string>.Fail("User not found."));
+
+            user.IsActive = !user.IsActive;
+            await _context.SaveChangesAsync();
+            await LogAction(user.IsActive ? "UserActivated" : "UserDeactivated", id);
+
+            return Ok(ApiResponse<bool>.Ok(user.IsActive,
+                user.IsActive ? "User activated successfully." : "User deactivated successfully."));
+        }
+
+        private async Task LogAction(string action, int targetId)
+        {
+            var adminIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var adminId = int.TryParse(adminIdClaim, out var id) ? id : 0;
+
+            _context.AuditLogs.Add(new AuditLog
+            {
+                UserId = adminId,
+                Action = action,
+                TargetId = targetId,
+                Timestamp = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
         }
     }
 }

@@ -9,21 +9,24 @@
         <h2>Add Patient</h2>
         <p class="page-subtitle">Register a new patient in the system.</p>
 
-        <form id="createForm">
+        <form id="createForm" novalidate>
             <div class="form-grid">
                 <div>
                     <label>First Name</label><br />
                     <input type="text" id="firstName" required />
+                    <p id="firstNameError" class="error-text"></p>
                 </div>
 
                 <div>
                     <label>Last Name</label><br />
                     <input type="text" id="lastName" required />
+                    <p id="lastNameError" class="error-text"></p>
                 </div>
 
                 <div>
                     <label>Age</label><br />
                     <input type="number" id="age" required />
+                    <p id="ageError" class="error-text"></p>
                 </div>
 
                 <div>
@@ -34,16 +37,19 @@
                         <option value="Female">Female</option>
                         <option value="Other">Other</option>
                     </select>
+                    <p id="genderError" class="error-text"></p>
                 </div>
 
                 <div>
                     <label>Phone Number</label><br />
                     <input type="text" id="phoneNumber" required />
+                    <p id="phoneNumberError" class="error-text"></p>
                 </div>
 
                 <div>
                     <label>Email</label><br />
                     <input type="email" id="email" required />
+                    <p id="emailError" class="error-text"></p>
                 </div>
             </div>
 
@@ -62,9 +68,52 @@
     if (!token) {
         window.location.href = "/Account/Login";
     }
+function clearFieldErrors() {
+    document.querySelectorAll(".error-text").forEach(el => el.textContent = "");
+}
 
-    document.getElementById("createForm").addEventListener("submit", async function (event) {
-        event.preventDefault();
+function validatePatientForm() {
+    clearFieldErrors();
+    let valid = true;
+
+    if (!document.getElementById("firstName").value.trim()) {
+        document.getElementById("firstNameError").textContent = "First name is required.";
+        valid = false;
+    }
+    if (!document.getElementById("lastName").value.trim()) {
+        document.getElementById("lastNameError").textContent = "Last name is required.";
+        valid = false;
+    }
+    const age = document.getElementById("age").value;
+    if (!age || age < 0 || age > 120) {
+        document.getElementById("ageError").textContent = "Enter a valid age (0-120).";
+        valid = false;
+    }
+    if (!document.getElementById("gender").value) {
+        document.getElementById("genderError").textContent = "Please select a gender.";
+        valid = false;
+    }
+    if (!document.getElementById("phoneNumber").value.trim()) {
+        document.getElementById("phoneNumberError").textContent = "Phone number is required.";
+        valid = false;
+    }
+    const email = document.getElementById("email").value.trim();
+    if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
+        document.getElementById("emailError").textContent = "Enter a valid email address.";
+        valid = false;
+    }
+
+    return valid;
+}
+    const form = document.getElementById("createForm");
+    form.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    if (!validatePatientForm()) return;
+
+    const btn = form.querySelector("button[type=submit]");
+        btn.disabled = true;
+        btn.textContent = "Saving...";
 
         const patient = {
             firstName: document.getElementById("firstName").value,
@@ -75,20 +124,28 @@
             email: document.getElementById("email").value
         };
 
-        const response = await fetch("/api/patients", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify(patient)
-        });
+        try {
+            const response = await fetch("/api/patients", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(patient)
+            });
 
-        if (response.ok) {
-    window.location.href = "/Patient";
-} else {
-    const result = await response.json().catch(() => ({}));
-    document.getElementById("errorMsg").textContent = result.message || "Failed to add patient.";
-}
+            if (response.ok) {
+                window.location.href = "/Patient";
+                return;
+            } else {
+                const result = await response.json().catch(() => ({}));
+                document.getElementById("errorMsg").textContent = result.message || "Failed to add patient.";
+            }
+        } catch (err) {
+            document.getElementById("errorMsg").textContent = "Could not connect to the server. Please check your connection and try again.";
+        }
+
+        btn.disabled = false;
+        btn.textContent = "Save Patient";
     });
 </script>

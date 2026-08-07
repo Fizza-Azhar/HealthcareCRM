@@ -14,5 +14,6 @@ namespace HealthcareCRM.API.Data
         public DbSet<Doctor> Doctors { get; set; } 
         public DbSet<Appointment> Appointments { get; set; }  // ← add this line
         public DbSet<User> Users { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; } 
     }
 }

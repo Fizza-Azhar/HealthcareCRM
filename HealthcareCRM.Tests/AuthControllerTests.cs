@@ -5,6 +5,7 @@ using HealthcareCRM.API.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.ComponentModel.DataAnnotations;
 using Xunit;
 
 namespace HealthcareCRM.Tests
@@ -138,5 +139,99 @@ namespace HealthcareCRM.Tests
 
             Assert.IsType<UnauthorizedObjectResult>(result);
         }
+       
+    private static void ApplyValidation(ControllerBase controller, object model)
+{
+    var context = new ValidationContext(model);
+    var results = new List<ValidationResult>();
+    if (!Validator.TryValidateObject(model, context, results, validateAllProperties: true))
+    {
+        foreach (var result in results)
+        {
+            foreach (var memberName in result.MemberNames.DefaultIfEmpty(""))
+            {
+                controller.ModelState.AddModelError(memberName, result.ErrorMessage ?? "Invalid value.");
+            }
+        }
+    }
+}
+
+[Fact]
+public async Task Register_MissingFirstName_ReturnsBadRequest()
+{
+    var controller = CreateController(out var context);
+    var request = new RegisterRequest
+    {
+        FirstName = "",
+        LastName = "User",
+        Email = "valid@example.com",
+        Password = "Password123"
+    };
+    ApplyValidation(controller, request);
+
+    var result = await controller.Register(request);
+
+    Assert.IsType<BadRequestObjectResult>(result);
+}
+
+[Fact]
+public async Task Register_InvalidEmailFormat_ReturnsBadRequest()
+{
+    var controller = CreateController(out var context);
+    var request = new RegisterRequest
+    {
+        FirstName = "Test",
+        LastName = "User",
+        Email = "not-an-email",
+        Password = "Password123"
+    };
+    ApplyValidation(controller, request);
+
+    var result = await controller.Register(request);
+
+    Assert.IsType<BadRequestObjectResult>(result);
+}
+
+[Fact]
+public async Task Register_ShortPassword_ReturnsBadRequest()
+{
+    var controller = CreateController(out var context);
+    var request = new RegisterRequest
+    {
+        FirstName = "Test",
+        LastName = "User",
+        Email = "valid2@example.com",
+        Password = "123"
+    };
+    ApplyValidation(controller, request);
+
+    var result = await controller.Register(request);
+
+    Assert.IsType<BadRequestObjectResult>(result);
+}
+
+[Fact]
+public async Task Login_MissingPassword_ReturnsBadRequest()
+{
+    var controller = CreateController(out var context);
+    var request = new LoginRequest { Email = "someone@example.com", Password = "" };
+    ApplyValidation(controller, request);
+
+    var result = await controller.Login(request);
+
+    Assert.IsType<BadRequestObjectResult>(result);
+}
+
+[Fact]
+public async Task Login_MissingEmail_ReturnsBadRequest()
+{
+    var controller = CreateController(out var context);
+    var request = new LoginRequest { Email = "", Password = "Whatever123" };
+    ApplyValidation(controller, request);
+
+    var result = await controller.Login(request);
+
+    Assert.IsType<BadRequestObjectResult>(result);
+}
     }
 }

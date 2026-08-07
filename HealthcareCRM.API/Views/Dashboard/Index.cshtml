@@ -36,29 +36,29 @@
     }
 
     async function loadDashboard() {
-    document.querySelectorAll(".stat-value").forEach(el => {
-        el.innerHTML = `<div class="spinner"></div>`;
-    });
+        document.querySelectorAll(".stat-value").forEach(el => {
+            el.innerHTML = `<div class="spinner"></div>`;
+        });
 
-    const response = await fetch("/api/dashboard/stats", {
-        headers: { "Authorization": `Bearer ${token}` }
-    });
+        const response = await fetch("/api/dashboard/stats", {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
 
-    if (response.status === 403) {
-        document.querySelector(".dashboard-cards").style.display = "none";
-        document.querySelector(".table-card").innerHTML = `
-            <p class="empty-state">You do not have permission to view this page. Admin access required.</p>
-        `;
-        return;
-    }
+        if (response.status === 403) {
+            document.querySelector(".dashboard-cards").style.display = "none";
+            document.querySelector(".table-card").innerHTML = `
+                <p class="empty-state">You do not have permission to view this page. Admin access required.</p>
+            `;
+            return;
+        }
 
-    if (!response.ok) {
-        alert("Failed to load dashboard.");
-        return;
-    }
+        if (!response.ok) {
+            alert("Failed to load dashboard.");
+            return;
+        }
 
-    const result = await response.json();
-    const stats = result.data;
+        const result = await response.json();
+        const stats = result.data;
 
         document.getElementById("totalPatients").innerText = stats.totalPatients;
         document.getElementById("appointmentsToday").innerText = stats.appointmentsToday;
@@ -69,37 +69,45 @@
         const labels = Object.keys(breakdown);
         const values = Object.values(breakdown);
 
-        const statusColors = {
-    "Pending": "#eab308",
-    "Confirmed": "#16a34a",
-    "Cancelled": "#dc2626"
-};
+        if (labels.length === 0) {
+            document.getElementById("statusChart").style.display = "none";
+            document.querySelector(".table-card").insertAdjacentHTML(
+                "beforeend",
+                `<p class="empty-state" id="chartEmptyState">No appointment data yet.</p>`
+            );
+        } else {
+            const statusColors = {
+                "Pending": "#eab308",
+                "Confirmed": "#16a34a",
+                "Cancelled": "#dc2626"
+            };
 
-const colors = labels.map(label => statusColors[label] || "#94a3b8");
+            const colors = labels.map(label => statusColors[label] || "#94a3b8");
 
-new Chart(document.getElementById("statusChart"), {
-    type: "bar",
-    data: {
-        labels: labels,
-        datasets: [{
-            label: "Appointments",
-            data: values,
-            backgroundColor: colors,
-            borderRadius: 6,
-            maxBarThickness: 90
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: { stepSize: 1 }
-            }
+            new Chart(document.getElementById("statusChart"), {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Appointments",
+                        data: values,
+                        backgroundColor: colors,
+                        borderRadius: 6,
+                        maxBarThickness: 90
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
         }
-    }
-});
     }
 
     loadDashboard();

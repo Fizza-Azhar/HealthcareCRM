@@ -11,25 +11,29 @@
         <h2>Create account</h2>
         <p class="auth-subtitle">Set up access to the patient system</p>
 
-        <form id="registerForm">
+        <form id="registerForm" novalidate>
             <div>
                 <label>First Name</label><br />
                 <input type="text" id="firstName" required />
+                <p id="firstNameError" class="error-text"></p>
             </div>
 
             <div>
                 <label>Last Name</label><br />
                 <input type="text" id="lastName" required />
+                <p id="lastNameError" class="error-text"></p>
             </div>
 
             <div>
                 <label>Email</label><br />
                 <input type="email" id="email" required />
+                <p id="emailError" class="error-text"></p>
             </div>
 
             <div>
                 <label>Password</label><br />
                 <input type="password" id="password" required />
+                <p id="passwordError" class="error-text"></p>
             </div>
 
             <button type="submit">Register</button>
@@ -41,35 +45,82 @@
 
 <script>
 
-document.getElementById("registerForm").addEventListener("submit", async function (event) {
+function clearFieldErrors() {
+    document.querySelectorAll(".error-text").forEach(el => el.textContent = "");
+}
 
+function validateRegisterForm() {
+    clearFieldErrors();
+    let valid = true;
+
+    if (!document.getElementById("firstName").value.trim()) {
+        document.getElementById("firstNameError").textContent = "Please fill out this field.";
+        valid = false;
+    }
+    if (!document.getElementById("lastName").value.trim()) {
+        document.getElementById("lastNameError").textContent = "Please fill out this field.";
+        valid = false;
+    }
+
+    const email = document.getElementById("email").value.trim();
+    if (!email) {
+        document.getElementById("emailError").textContent = "Please fill out this field.";
+        valid = false;
+    } else if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
+        document.getElementById("emailError").textContent = "Please enter a valid email address.";
+        valid = false;
+    }
+
+    const password = document.getElementById("password").value;
+    if (!password) {
+        document.getElementById("passwordError").textContent = "Please fill out this field.";
+        valid = false;
+    } else if (password.length < 6) {
+        document.getElementById("passwordError").textContent = "Password must be at least 6 characters long.";
+        valid = false;
+    }
+
+    return valid;
+}
+
+document.getElementById("registerForm").addEventListener("submit", async function (event) {
     event.preventDefault();
 
-    const user = {
+    if (!validateRegisterForm()) return;
 
+    const user = {
         firstName: document.getElementById("firstName").value,
         lastName: document.getElementById("lastName").value,
         email: document.getElementById("email").value,
         password: document.getElementById("password").value
-
     };
 
-    const response = await fetch("/api/auth/register", {
+    const btn = document.querySelector("#registerForm button[type=submit]");
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Registering...";
+    document.getElementById("message").innerText = "";
 
-        method: "POST",
+    try {
+        const response = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(user)
+        });
 
-        headers: {
-            "Content-Type": "application/json"
-        },
+        const data = await response.json();
+        document.getElementById("message").innerText = data.message;
 
-        body: JSON.stringify(user)
-
-    });
-
-    const data = await response.json();
-
-    document.getElementById("message").innerText = data.message;
-
+        if (response.ok) {
+            setTimeout(() => window.location.href = "/Account/Login", 1200);
+        } else {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    } catch (err) {
+        document.getElementById("message").innerText = "Could not connect to the server. Please check your connection and try again.";
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
 });
-
 </script>

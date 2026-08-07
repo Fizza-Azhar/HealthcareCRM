@@ -20,5 +20,7 @@ namespace HealthcareCRM.API.Models
         public string PasswordHash { get; set; } = "";
 
         public string Role { get; set; } = "Staff"; // e.g. Staff, Admin
+
+        public bool IsActive { get; set; } = true;
     }
 }

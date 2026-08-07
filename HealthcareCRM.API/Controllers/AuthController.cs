@@ -22,9 +22,12 @@ namespace HealthcareCRM.API.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
-        {
-            var existing = await _context.Users.AnyAsync(u => u.Email == request.Email);
+public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+{
+    if (!ModelState.IsValid)
+        return BadRequest(new { message = "Invalid registration data." });
+
+    var existing = await _context.Users.AnyAsync(u => u.Email == request.Email);
             if (existing)
                 return BadRequest(new { message = "An account with this email already exists." });
 
@@ -44,11 +47,17 @@ namespace HealthcareCRM.API.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+public async Task<IActionResult> Login([FromBody] LoginRequest request)
+{
+    if (!ModelState.IsValid)
+        return BadRequest(new { message = "Invalid login data." });
+
+    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
             if (user == null)
                 return Unauthorized(new { message = "Invalid email or password." });
+
+            if (!user.IsActive)
+                return Unauthorized(new { message = "This account has been deactivated. Contact an administrator." });
 
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
             if (result == PasswordVerificationResult.Failed)

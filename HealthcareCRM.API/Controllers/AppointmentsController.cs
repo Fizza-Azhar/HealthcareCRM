@@ -129,5 +129,18 @@ namespace HealthcareCRM.API.Controllers
 
             return Ok(ApiResponse<Appointment>.Ok(appointment, "Status updated successfully."));
         }
+        // DELETE: api/appointments/5
+[HttpDelete("{id}")]
+public async Task<IActionResult> DeleteAppointment(int id)
+{
+    var appointment = await _context.Appointments.FindAsync(id);
+    if (appointment == null)
+        return NotFound(ApiResponse<string>.Fail("Appointment not found."));
+
+    _context.Appointments.Remove(appointment);
+    await _context.SaveChangesAsync();
+
+    return Ok(ApiResponse<string>.Ok(null!, "Appointment deleted successfully."));
+}
     }
 }

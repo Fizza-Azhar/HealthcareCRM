@@ -8,36 +8,39 @@
         <h2>Book Appointment</h2>
         <p class="page-subtitle">Select a patient, doctor, and appointment time.</p>
 
-        <form id="bookAppointmentForm">
+        <form id="bookAppointmentForm" novalidate>
             <div class="form-grid">
-                <div class="full-width">
-                    <label>Patient</label>
-                    <select id="patientId" required>
-                        <option value="">Select a patient...</option>
-                    </select>
-                </div>
+    <div class="full-width">
+        <label>Patient</label>
+        <select id="patientId" required>
+            <option value="">Select a patient...</option>
+        </select>
+        <p id="patientIdError" class="error-text"></p>
+    </div>
 
-                <div class="full-width">
-                    <label>Doctor</label>
-                    <select id="doctorId" required>
-                        <option value="">Select a doctor...</option>
-                    </select>
-                </div>
+    <div class="full-width">
+        <label>Doctor</label>
+        <select id="doctorId" required>
+            <option value="">Select a doctor...</option>
+        </select>
+        <p id="doctorIdError" class="error-text"></p>
+    </div>
 
-                <div class="full-width">
-                    <label>Date & Time</label>
-                    <input type="datetime-local" id="dateTime" required />
-                </div>
+    <div class="full-width">
+        <label>Date & Time</label>
+        <input type="datetime-local" id="dateTime" required />
+        <p id="dateTimeError" class="error-text"></p>
+    </div>
 
-                <div class="full-width">
-                    <label>Notes</label>
-                    <input type="text" id="notes" placeholder="Optional notes..." />
-                </div>
+    <div class="full-width">
+        <label>Notes</label>
+        <input type="text" id="notes" placeholder="Optional notes..." />
+    </div>
 
-                <div class="full-width">
-                    <p id="errorMsg" style="color: var(--danger);"></p>
-                </div>
-            </div>
+    <div class="full-width">
+        <p id="errorMsg" style="color: var(--danger);"></p>
+    </div>
+</div>
 
             <div class="form-actions">
                 <button type="submit">Book Appointment</button>
@@ -54,48 +57,89 @@
     }
 
     async function loadPatients() {
-    const response = await fetch("/api/patients?pageSize=1000", {
-        headers: { "Authorization": `Bearer ${token}` }
-    });
+        try {
+            const response = await fetch("/api/patients?pageSize=1000", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
 
-    if (!response.ok) {
-        document.getElementById("errorMsg").textContent = "Failed to load patients.";
-        return;
+            if (!response.ok) {
+                document.getElementById("errorMsg").textContent = "Failed to load patients.";
+                return;
+            }
+
+            const result = await response.json();
+            const patients = result.data || [];
+
+            const select = document.getElementById("patientId");
+            patients.forEach(p => {
+                const option = document.createElement("option");
+                option.value = p.id;
+                option.textContent = `${p.firstName} ${p.lastName}`;
+                select.appendChild(option);
+            });
+        } catch (err) {
+            document.getElementById("errorMsg").textContent = "Could not connect to the server. Please check your connection and try again.";
+        }
     }
 
-    const result = await response.json();
-    const patients = result.data || [];
-
-    const select = document.getElementById("patientId");
-    patients.forEach(p => {
-        const option = document.createElement("option");
-        option.value = p.id;
-        option.textContent = `${p.firstName} ${p.lastName}`;
-        select.appendChild(option);
-    });
-}
     async function loadDoctors() {
-        const response = await fetch("/api/doctors", {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-        const result = await response.json();
-        const doctors = result.data || [];
+        try {
+            const response = await fetch("/api/doctors", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const result = await response.json();
+            const doctors = result.data || [];
 
-        const select = document.getElementById("doctorId");
-        doctors.forEach(d => {
-            const option = document.createElement("option");
-            option.value = d.id;
-            option.textContent = `${d.name} (${d.specialization})`;
-            select.appendChild(option);
-        });
+            const select = document.getElementById("doctorId");
+            doctors.forEach(d => {
+                const option = document.createElement("option");
+                option.value = d.id;
+                option.textContent = `${d.name} (${d.specialization})`;
+                select.appendChild(option);
+            });
+        } catch (err) {
+            document.getElementById("errorMsg").textContent = "Could not connect to the server. Please check your connection and try again.";
+        }
     }
 
     const form = document.getElementById("bookAppointmentForm");
     const errorMsg = document.getElementById("errorMsg");
+function clearFieldErrors() {
+    document.querySelectorAll(".error-text").forEach(el => el.textContent = "");
+}
 
+function validateAppointmentForm() {
+    clearFieldErrors();
+    let valid = true;
+
+    if (!document.getElementById("patientId").value) {
+        document.getElementById("patientIdError").textContent = "Please select a patient.";
+        valid = false;
+    }
+    if (!document.getElementById("doctorId").value) {
+        document.getElementById("doctorIdError").textContent = "Please select a doctor.";
+        valid = false;
+    }
+    const dateTimeVal = document.getElementById("dateTime").value;
+    if (!dateTimeVal) {
+        document.getElementById("dateTimeError").textContent = "Please choose a date and time.";
+        valid = false;
+    } else if (new Date(dateTimeVal) < new Date()) {
+        document.getElementById("dateTimeError").textContent = "Appointment time cannot be in the past.";
+        valid = false;
+    }
+
+    return valid;
+}
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        errorMsg.textContent = "";
+errorMsg.textContent = "";
+
+if (!validateAppointmentForm()) return;
+
+const btn = form.querySelector("button[type=submit]");
+btn.disabled = true;
+btn.textContent = "Booking...";
 
         const appointment = {
             patientId: parseInt(document.getElementById("patientId").value),
@@ -104,23 +148,30 @@
             notes: document.getElementById("notes").value
         };
 
-        const response = await fetch("/api/appointments", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify(appointment)
-        });
+        try {
+            const response = await fetch("/api/appointments", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(appointment)
+            });
 
-        const result = await response.json();
+            const result = await response.json();
 
-        if (!response.ok) {
-            errorMsg.textContent = result.message || "Failed to book appointment.";
-            return;
+            if (!response.ok) {
+                errorMsg.textContent = result.message || "Failed to book appointment.";
+            } else {
+                window.location.href = "/Appointment/Index";
+                return;
+            }
+        } catch (err) {
+            errorMsg.textContent = "Could not connect to the server. Please check your connection and try again.";
         }
 
-        window.location.href = "/Appointment/Index";
+        btn.disabled = false;
+        btn.textContent = "Book Appointment";
     });
 
     loadPatients();

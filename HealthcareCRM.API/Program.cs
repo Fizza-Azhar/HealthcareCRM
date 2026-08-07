@@ -4,7 +4,7 @@ using HealthcareCRM.API.Helpers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -61,6 +61,34 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = jwtAudience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
+         options.Events = new JwtBearerEvents
+        {
+            OnChallenge = async context =>
+            {
+                context.HandleResponse(); // stop default behavior
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.ContentType = "application/json";
+                var result = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    success = false,
+                    message = "Authentication required. Please log in.",
+                    data = (object?)null
+                });
+                await context.Response.WriteAsync(result);
+            },
+            OnForbidden = async context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                context.Response.ContentType = "application/json";
+                var result = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    success = false,
+                    message = "You do not have permission to access this resource.",
+                    data = (object?)null
+                });
+                await context.Response.WriteAsync(result);
+            }
+        };
     });
 
 builder.Services.AddAuthorization(options =>
@@ -103,3 +131,4 @@ app.MapGet("/api/health", () =>
 .WithOpenApi();
 
 app.Run();
+public partial class Program { }
