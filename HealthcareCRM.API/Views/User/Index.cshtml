@@ -13,6 +13,7 @@
                 <th>Name</th>
                 <th>Email</th>
                 <th>Role</th>
+                <th>Status</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -26,21 +27,21 @@
     }
 
     async function loadUsers() {
-    const tableBody = document.querySelector("#usersTable tbody");
-    tableBody.innerHTML = `
-        <tr class="spinner-row">
-            <td colspan="5"><div class="spinner"></div></td>
-        </tr>
-    `;
+        const tableBody = document.querySelector("#usersTable tbody");
+        tableBody.innerHTML = `
+            <tr class="spinner-row">
+                <td colspan="6"><div class="spinner"></div></td>
+            </tr>
+        `;
 
-    const response = await fetch("/api/users", {
-        headers: { "Authorization": `Bearer ${token}` }
-    });
+        const response = await fetch("/api/users", {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
 
         if (response.status === 401 || response.status === 403) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="empty-state">
+                    <td colspan="6" class="empty-state">
                         You do not have permission to view this page.
                     </td>
                 </tr>
@@ -51,7 +52,7 @@
         if (!response.ok) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="empty-state">
+                    <td colspan="6" class="empty-state">
                         Failed to load users.
                     </td>
                 </tr>
@@ -70,10 +71,12 @@
     <td>${u.firstName} ${u.lastName}</td>
     <td>${u.email}</td>
     <td><span class="tag ${u.role === 'Admin' ? 'tag-blue' : 'tag-yellow'}">${u.role}</span></td>
+    <td><span class="tag ${u.isActive ? 'tag-green' : 'tag-red'}">${u.isActive ? 'Active' : 'Inactive'}</span></td>
     <td>
         ${u.role === 'Staff'
             ? `<button onclick="updateRole(${u.id}, 'Admin')">Promote to Admin</button>`
             : `<button onclick="updateRole(${u.id}, 'Staff')">Demote to Staff</button>`}
+        <button onclick="toggleActive(${u.id})">${u.isActive ? 'Deactivate' : 'Activate'}</button>
     </td>
 </tr>
 `;
@@ -96,6 +99,21 @@
             loadUsers();
         } else {
             alert("Failed to update role.");
+        }
+    }
+
+    async function toggleActive(id) {
+        if (!confirm("Change this user's active status?")) return;
+
+        const response = await fetch(`/api/users/${id}/toggle-active`, {
+            method: "PUT",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            loadUsers();
+        } else {
+            alert("Failed to update user status.");
         }
     }
 

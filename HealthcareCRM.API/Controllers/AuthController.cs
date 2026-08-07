@@ -56,6 +56,9 @@ public async Task<IActionResult> Login([FromBody] LoginRequest request)
             if (user == null)
                 return Unauthorized(new { message = "Invalid email or password." });
 
+            if (!user.IsActive)
+                return Unauthorized(new { message = "This account has been deactivated. Contact an administrator." });
+
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
             if (result == PasswordVerificationResult.Failed)
                 return Unauthorized(new { message = "Invalid email or password." });
