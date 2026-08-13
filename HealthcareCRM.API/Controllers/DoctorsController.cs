@@ -1,4 +1,3 @@
-
 using HealthcareCRM.API.Data;
 using HealthcareCRM.API.Models;
 using HealthcareCRM.API.Helpers;
@@ -8,6 +7,10 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace HealthcareCRM.API.Controllers
 {
+    /// <summary>
+    /// Manages doctor records. All endpoints require a valid Bearer token;
+    /// deactivate/reactivate additionally require the Admin role.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
@@ -20,9 +23,15 @@ namespace HealthcareCRM.API.Controllers
             _context = context;
         }
 
-        // GET: api/doctors
-        // GET: api/doctors?includeInactive=true
+        /// <summary>
+        /// Returns the list of doctors. Inactive doctors are excluded by default.
+        /// </summary>
+        /// <param name="includeInactive">If true, includes deactivated doctors in the results.</param>
+        /// <response code="200">Returns the matching doctors.</response>
+        /// <response code="401">Missing or invalid Bearer token.</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetDoctors([FromQuery] bool includeInactive = false)
         {
             var query = _context.Doctors.AsQueryable();
@@ -34,8 +43,15 @@ namespace HealthcareCRM.API.Controllers
             return Ok(ApiResponse<List<Doctor>>.Ok(doctors));
         }
 
-        // GET: api/doctors/5
+        /// <summary>
+        /// Returns a single doctor by ID, regardless of active status.
+        /// </summary>
+        /// <param name="id">The doctor's ID.</param>
+        /// <response code="200">Returns the doctor.</response>
+        /// <response code="404">No doctor exists with this ID.</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetDoctor(int id)
         {
             var doctor = await _context.Doctors.FindAsync(id);
@@ -46,8 +62,15 @@ namespace HealthcareCRM.API.Controllers
             return Ok(ApiResponse<Doctor>.Ok(doctor));
         }
 
-        // POST: api/doctors
+        /// <summary>
+        /// Creates a new doctor record.
+        /// </summary>
+        /// <param name="doctor">Name, specialization, phone, and schedule days. All required.</param>
+        /// <response code="201">Doctor created. Response includes the new doctor's ID.</response>
+        /// <response code="400">Validation failed (missing/invalid field).</response>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateDoctor(Doctor doctor)
         {
             if (!ModelState.IsValid)
@@ -62,8 +85,17 @@ namespace HealthcareCRM.API.Controllers
                 ApiResponse<Doctor>.Ok(doctor, "Doctor created successfully."));
         }
 
-        // PUT: api/doctors/5
+        /// <summary>
+        /// Updates an existing doctor's details. Active status is not changed here —
+        /// use the deactivate/reactivate endpoints for that.
+        /// </summary>
+        /// <param name="id">The doctor's ID.</param>
+        /// <param name="updated">The new field values to apply.</param>
+        /// <response code="200">Doctor updated successfully.</response>
+        /// <response code="404">No doctor exists with this ID.</response>
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateDoctor(int id, Doctor updated)
         {
             var doctor = await _context.Doctors.FindAsync(id);
@@ -81,9 +113,20 @@ namespace HealthcareCRM.API.Controllers
             return Ok(ApiResponse<Doctor>.Ok(doctor, "Doctor updated successfully."));
         }
 
-        // PUT: api/doctors/5/deactivate
+        /// <summary>
+        /// Deactivates a doctor (soft-delete — the record is kept, not removed). Admin only.
+        /// </summary>
+        /// <param name="id">The doctor's ID.</param>
+        /// <response code="200">Doctor deactivated successfully.</response>
+        /// <response code="400">Doctor is already inactive.</response>
+        /// <response code="403">Caller does not have the Admin role.</response>
+        /// <response code="404">No doctor exists with this ID.</response>
         [Authorize(Policy = "AdminOnly")]
         [HttpPut("{id}/deactivate")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Deactivate(int id)
         {
             var doctor = await _context.Doctors.FindAsync(id);
@@ -99,9 +142,20 @@ namespace HealthcareCRM.API.Controllers
             return Ok(ApiResponse<Doctor>.Ok(doctor, "Doctor deactivated successfully."));
         }
 
-        // PUT: api/doctors/5/reactivate
+        /// <summary>
+        /// Reactivates a previously deactivated doctor. Admin only.
+        /// </summary>
+        /// <param name="id">The doctor's ID.</param>
+        /// <response code="200">Doctor reactivated successfully.</response>
+        /// <response code="400">Doctor is already active.</response>
+        /// <response code="403">Caller does not have the Admin role.</response>
+        /// <response code="404">No doctor exists with this ID.</response>
         [Authorize(Policy = "AdminOnly")]
         [HttpPut("{id}/reactivate")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Reactivate(int id)
         {
             var doctor = await _context.Doctors.FindAsync(id);
@@ -117,4 +171,4 @@ namespace HealthcareCRM.API.Controllers
             return Ok(ApiResponse<Doctor>.Ok(doctor, "Doctor reactivated successfully."));
         }
     }
-} 
+}

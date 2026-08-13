@@ -9,6 +9,10 @@ using System.Security.Claims;
 
 namespace HealthcareCRM.API.Controllers
 {
+    /// <summary>
+    /// Manages user accounts, roles, and active status. All endpoints require the Admin role.
+    /// Every role change and status change is recorded to the audit log automatically.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Authorize(Policy = "AdminOnly")]
@@ -21,8 +25,14 @@ namespace HealthcareCRM.API.Controllers
             _context = context;
         }
 
-        // GET: api/users
+        /// <summary>
+        /// Returns all users with their role and active status.
+        /// </summary>
+        /// <response code="200">Returns the list of users.</response>
+        /// <response code="403">Caller does not have the Admin role.</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetUsers()
         {
             var users = await _context.Users
@@ -32,8 +42,20 @@ namespace HealthcareCRM.API.Controllers
             return Ok(ApiResponse<object>.Ok(users));
         }
 
-        // PUT: api/users/{id}/role
+        /// <summary>
+        /// Changes a user's role between "Staff" and "Admin".
+        /// </summary>
+        /// <param name="id">The user's ID.</param>
+        /// <param name="dto">The new role. Must be exactly "Staff" or "Admin".</param>
+        /// <response code="200">Role updated successfully.</response>
+        /// <response code="400">The role value is not "Staff" or "Admin".</response>
+        /// <response code="403">Caller does not have the Admin role.</response>
+        /// <response code="404">No user exists with this ID.</response>
         [HttpPut("{id}/role")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateRole(int id, [FromBody] UpdateRoleDto dto)
         {
             var validRoles = new[] { "Staff", "Admin" };
@@ -51,8 +73,18 @@ namespace HealthcareCRM.API.Controllers
             return Ok(ApiResponse<string>.Ok(user.Role, "Role updated successfully."));
         }
 
-        // PUT: api/users/{id}/toggle-active
+        /// <summary>
+        /// Toggles a user's active status. Deactivated users are blocked from logging in,
+        /// even with correct credentials.
+        /// </summary>
+        /// <param name="id">The user's ID.</param>
+        /// <response code="200">Status toggled successfully. Response indicates the new state.</response>
+        /// <response code="403">Caller does not have the Admin role.</response>
+        /// <response code="404">No user exists with this ID.</response>
         [HttpPut("{id}/toggle-active")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ToggleActive(int id)
         {
             var user = await _context.Users.FindAsync(id);

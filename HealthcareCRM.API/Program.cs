@@ -13,6 +13,9 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath);
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -96,6 +99,29 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
 });
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    context.Database.Migrate(); // ensures database + tables exist
+
+    var adminExists = context.Users.Any(u => u.Role == "Admin");
+    if (!adminExists)
+    {
+        var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<HealthcareCRM.API.Models.User>();
+        var defaultAdmin = new HealthcareCRM.API.Models.User
+        {
+            FirstName = "Default",
+            LastName = "Admin",
+            Email = "admin@healthcarecrm.com",
+            Role = "Admin",
+            IsActive = true
+        };
+        defaultAdmin.PasswordHash = hasher.HashPassword(defaultAdmin, "Admin@123");
+
+        context.Users.Add(defaultAdmin);
+        context.SaveChanges();
+    }
+}
 app.UseMiddleware<HealthcareCRM.API.Middleware.ExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.

@@ -7,6 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HealthcareCRM.API.Controllers
 {
+    /// <summary>
+    /// Provides live analytics data for the Admin dashboard. Admin role required.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Authorize(Policy = "AdminOnly")]
@@ -19,7 +22,16 @@ namespace HealthcareCRM.API.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// Returns live clinic statistics: total active patients, appointments today and this week,
+        /// pending appointment count, and a breakdown of appointment counts by status.
+        /// All figures are computed live from the database, never cached or hardcoded.
+        /// </summary>
+        /// <response code="200">Returns the current statistics.</response>
+        /// <response code="403">Caller does not have the Admin role.</response>
         [HttpGet("stats")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetStats()
         {
             var today = DateTime.Today;
