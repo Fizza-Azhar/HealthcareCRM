@@ -1,7 +1,120 @@
 # Healthcare CRM
 
 ## Project Overview
-Healthcare CRM is a web application developed using ASP.NET Core MVC. It allows staff to manage patients, doctors, and appointments through a role-aware interface, with secured API access via JWT authentication and Role-Based Access Control (RBAC). The application includes login/registration, full CRUD for Patients and Doctors, a complete Appointment booking and management module, an Admin-only Analytics Dashboard, full user/role/status management with audit logging, CSV/PDF data export, and SQL Server database integration via Entity Framework Core.
+
+Healthcare CRM is a web application built with ASP.NET Core MVC for managing patients, doctors, and appointments in a small clinic setting. It's designed for two types of users: **Staff**, who handle day-to-day patient/doctor/appointment management, and **Admins**, who additionally get access to an analytics dashboard, user role management, and data export tools. Access is secured with JWT authentication and role-based permissions, so every action is checked against the logged-in user's role before it's allowed.
+
+This README is written for someone who has never seen this codebase before. If you're picking this project up for the first time, follow the setup steps below in order and you should have it running locally within a few minutes.
+
+## Prerequisites
+
+Before you start, make sure you have the following installed:
+
+- **.NET 8 SDK** (verify with `dotnet --version` — should show `8.0.x`)
+- **SQL Server Express** (or another SQL Server edition — see note below if your instance name differs)
+- **Git**
+- A code editor (Visual Studio, VS Code, or similar)
+
+> **Note on SQL Server:** This project's default configuration expects a local SQL Server instance named `SQLEXPRESS` (the standard name when you install SQL Server Express). If your SQL Server installation uses a different instance name, you'll need to update the connection string in `appsettings.json` (see Step 3 below) to match your instance.
+
+## Setup — From Clone to Running
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Fizza-Azhar/HealthcareCRM.git
+cd HealthcareCRM
+```
+
+### 2. Restore packages
+
+```bash
+cd HealthcareCRM.API
+dotnet restore
+```
+
+### 3. Configure your database connection
+
+Open `HealthcareCRM.API/appsettings.json` and check the `ConnectionStrings` section:
+
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Server=localhost\\SQLEXPRESS;Database=HealthcareCRM;Trusted_Connection=True;TrustServerCertificate=True;"
+}
+```
+
+If your SQL Server instance has a different name, replace `localhost\SQLEXPRESS` with your actual server/instance name. If you're unsure what your instance is called, open SQL Server Management Studio (SSMS) and check the name shown when you connect.
+
+### 4. Run database migrations
+
+This creates the `HealthcareCRM` database and all its tables automatically:
+
+```bash
+dotnet ef database update
+```
+
+If `dotnet ef` isn't recognized, install it first with:
+```bash
+dotnet tool install --global dotnet-ef
+```
+
+### 5. Run the project
+
+```bash
+dotnet run
+```
+
+You should see output ending with something like:
+```
+Now listening on: http://localhost:5100
+```
+
+Open that URL in your browser.
+
+### 6. Log in
+
+On first startup, the app automatically creates a default Admin account if one doesn't already exist (no manual database editing required). Use these credentials to log in:
+
+| Field | Value |
+|---|---|
+| Email | `admin@healthcarecrm.com` |
+| Password | `Admin@123` |
+
+**Important:** Change this password (or create a new Admin account and deactivate this one) before using the app beyond local development/testing, since this default password is publicly visible in this README.
+
+There is no automatic seed data for sample Patients, Doctors, or Appointments — you'll need to add these manually through the app's UI after logging in, or via the API directly.
+
+## Architecture Overview
+
+The project is split into two parts:
+
+```
+HealthcareCRM
+├── HealthcareCRM.API          — the main web application
+│   ├── Controllers/           — API endpoints (one file per resource: Patients, Doctors, Appointments, Users, Auth, Export, Dashboard)
+│   ├── Models/                — database entity classes (Patient, Doctor, Appointment, User, AuditLog)
+│   ├── DTOs/                  — request/response shapes used by the API (e.g. RegisterRequest, UpdateRoleDto)
+│   ├── Data/                  — AppDbContext (the Entity Framework database context)
+│   ├── Middleware/             — global exception handling
+│   ├── Helpers/                — JWT token generation logic
+│   ├── Views/                  — MVC pages (Login, Register, Patient/Doctor/Appointment lists and forms, Dashboard, User Management)
+│   ├── Migrations/             — Entity Framework database migration history
+│   ├── wwwroot/                — static files (CSS, images)
+│   └── Program.cs              — application startup: services, authentication, middleware pipeline, and Admin seeding
+└── HealthcareCRM.Tests         — the automated test project (xUnit)
+```
+
+**How a request flows through the app:** Browser → MVC View (renders HTML) → JavaScript `fetch()` call → API Controller → Entity Framework → SQL Server, with the JWT token attached to every API call after login to prove who's making the request.
+
+**MVC vs. API layers:** Controllers ending in `Controller` under routes like `/api/patients` are pure API endpoints returning JSON. Controllers like `AccountController` and `UserController` (no "s") serve the actual HTML pages via Views.
+
+## Default Credentials
+
+| Role | Email | Password |
+|---|---|---|
+| Admin (auto-created on first run) | `admin@healthcarecrm.com` | `Admin@123` |
+
+Additional Staff accounts can be created via the Register page. Any newly registered user starts as **Staff**; an existing Admin must promote them via the User Management page (`/User`) to grant Admin access.
 
 ## Features
 
@@ -10,46 +123,15 @@ Healthcare CRM is a web application developed using ASP.NET Core MVC. It allows 
 - Deactivated user accounts are blocked at login, independent of valid credentials
 - Role-Based Access Control (RBAC): Admin and Staff roles, enforced via an `AdminOnly` authorization policy
 - Protected API endpoints (Doctors, Patients, Appointments, Users, Dashboard, Export) requiring a valid Bearer token
-- Patient Management (Full CRUD, soft-delete + reactivate)
-  - Add Patient
-  - View Patient List (search, pagination, "show inactive" toggle for Admins)
-  - View Patient Details (full profile)
-  - Edit Patient
-  - Deactivate / Reactivate Patient (Admin-only, no permanent removal)
-  - Per-field inline validation with server-side error display
-- Doctor Management (Full CRUD, soft-delete + reactivate)
-  - Add Doctor
-  - View Doctor List (search, "show inactive" toggle for Admins)
-  - Edit Doctor
-  - Deactivate / Reactivate Doctor (Admin-only, no hard-delete)
-  - Per-field inline validation with server-side error display
-- Appointment Management (complete end-to-end)
-  - Book Appointment (select patient, doctor, date/time, notes), with past-date validation
-  - View Appointment List with status filter (Pending / Confirmed / Cancelled)
-  - Confirm or Cancel appointment (with confirmation dialog)
-  - Delete appointment permanently (with confirmation dialog)
-  - Foreign key validation — no orphan appointments
-- Analytics Dashboard (Admin-only)
-  - Live metric cards: total patients, appointments today/this week, pending count
-  - Appointment status breakdown chart (Chart.js), with a graceful empty-state message when no appointment data exists
-  - No hardcoded values — all figures pulled live from the database
-- User Management (Admin-only)
-  - View all users, their roles, and active/inactive status
-  - Promote Staff to Admin / demote Admin to Staff
-  - Activate / deactivate user accounts (deactivated users cannot log in)
-  - Every role change and status change is recorded in an audit log (who did what, to whom, and when)
-- Data Export (Admin-only)
-  - Export active patient list to CSV
-  - Export appointment report to PDF, with a configurable date range, generated via QuestPDF
-  - Both export actions capped at 500 records per request
-- Home page with live stats (active doctors, registered patients, appointments this week) via a lightweight non-admin stats endpoint
-- Shared navigation layout across all authenticated pages, with Admin-only links (Dashboard, User Management) hidden from Staff
-- Global exception-handling middleware — every unhandled error returns a structured `{ success: false, message, data: null }` response instead of a raw crash, with distinct HTTP status codes for validation errors (400), not-found (404), and unauthorized (403) exceptions in addition to generic 500s
-- Empty-state handling on list screens and the dashboard chart — no blank or broken UI on zero-record datasets
-- SQL Server Database Integration via Entity Framework Core
-- Swagger API Testing (with Bearer token authorization support)
-- Automated test suite (xUnit) — 79+ passing tests covering Auth, Patients, Doctors, Appointments, Dashboard, Users, Export, RBAC, and the global exception middleware
-- Project Documentation (test cases, bug tracker, ERD)
+- Patient Management (Full CRUD, soft-delete + reactivate), with per-field inline validation
+- Doctor Management (Full CRUD, soft-delete + reactivate), with per-field inline validation
+- Appointment Management (booking with past-date validation, status filtering, confirm/cancel, permanent delete)
+- Analytics Dashboard (Admin-only): live metric cards and appointment status breakdown chart, with graceful empty-state handling
+- User Management (Admin-only): view all users and their active status, promote/demote roles, activate/deactivate accounts, all changes recorded to an audit log
+- Data Export (Admin-only): CSV export of active patients, PDF export of appointment reports with a date range filter
+- Home page with live stats for any authenticated user
+- Global exception-handling middleware returning structured, consistent error responses with correct HTTP status codes
+- Automated test suite (xUnit) — 79+ passing tests
 
 ## Technologies Used
 
@@ -57,53 +139,12 @@ Healthcare CRM is a web application developed using ASP.NET Core MVC. It allows 
 - C#
 - Entity Framework Core
 - SQL Server
-- JWT Bearer Authentication (Microsoft.AspNetCore.Authentication.JwtBearer)
+- JWT Bearer Authentication
 - QuestPDF (PDF report generation)
-- xUnit + Microsoft.EntityFrameworkCore.InMemory + Microsoft.AspNetCore.Mvc.Testing + Moq (automated unit and integration testing)
-- Chart.js (Dashboard visualization)
+- xUnit, Microsoft.EntityFrameworkCore.InMemory, Microsoft.AspNetCore.Mvc.Testing, Moq (testing)
+- Chart.js (dashboard visualization)
 - HTML, CSS, JavaScript (Fetch API)
 - Swagger / Swashbuckle
-
-## Project Structure
-HealthcareCRM
-├── HealthcareCRM.API
-│ ├── Controllers
-│ ├── DTOs
-│ ├── Helpers
-│ ├── Middleware
-│ ├── Models
-│ ├── Views
-│ │ └── Shared (_Layout.cshtml)
-│ ├── Data
-│ ├── Migrations
-│ ├── wwwroot
-│ ├── Documentation
-│ └── Program.cs
-└── HealthcareCRM.Tests
-├── Unit tests (Controllers)
-├── Middleware tests
-└── Integration tests (RBAC, WebApplicationFactory-based)
-
-## Database
-
-**Database Name:** `HealthcareCRM`
-
-### Tables
-
-**Users**
-- Id, FirstName, LastName, Email, PasswordHash, Role (Staff / Admin), IsActive
-
-**Patients**
-- Id, FirstName, LastName, Age, Gender, PhoneNumber, Email, IsActive
-
-**Doctors**
-- Id, Name, Specialization, Phone, ScheduleDays, IsActive
-
-**Appointments**
-- Id, PatientId (FK), DoctorId (FK), DateTime, Status, Notes
-
-**AuditLogs**
-- Id, UserId (admin who performed the action), Action, TargetId (user affected), Timestamp
 
 ## API Response Standard
 
@@ -115,23 +156,7 @@ All API endpoints return a consistent shape:
   "message": "Success"
 }
 ```
-Unhandled exceptions are caught globally and return the same shape with `success: false`. The global handler distinguishes exception types to return the correct status code:
-- `ArgumentException` → 400
-- `KeyNotFoundException` → 404
-- `UnauthorizedAccessException` → 403
-- anything else → 500, with a generic message (no internal exception details are leaked to the client)
-
-## Authentication & Authorization
-
-- Registration hashes passwords using ASP.NET's `PasswordHasher<T>` — plain text passwords are never stored
-- Registration and login both validate required fields, email format, and minimum password length server-side (`DataAnnotations` + `ModelState` checks), in addition to client-side per-field validation
-- Login verifies credentials and issues a signed JWT (HMAC SHA-256), containing user id, email, name, and role claims
-- Login is blocked for deactivated accounts (`IsActive = false`), even with correct credentials
-- Token is stored in the browser's Local Storage and sent as `Authorization: Bearer {token}` on every protected request
-- All API controllers require a valid token (`[Authorize]`)
-- Admin-only actions (Dashboard, User management, Doctor/Patient deactivate & reactivate, Export) additionally require the `AdminOnly` policy (`RequireRole("Admin")`)
-- Unauthenticated and unauthorized requests return structured JSON (`401`/`403` with `{ success: false, message, data: null }`) via custom `JwtBearerEvents`, rather than bare status codes
-- Frontend reads the role from the decoded JWT to conditionally show/hide Admin-only navigation links; server-side policy enforcement is the actual security boundary
+Unhandled exceptions are caught globally and return the same shape with `success: false`, using the correct HTTP status code for the type of error (400 for bad input, 404 for not found, 403 for unauthorized, 500 for anything unexpected).
 
 ## API Endpoints
 
@@ -164,7 +189,7 @@ Unhandled exceptions are caught globally and return the same shape with `success
 - `DELETE /api/appointments/{id}`
 
 ### Users (Admin only)
-- `GET /api/users` — includes active/inactive status
+- `GET /api/users`
 - `PUT /api/users/{id}/role`
 - `PUT /api/users/{id}/toggle-active`
 
@@ -178,45 +203,36 @@ Unhandled exceptions are caught globally and return the same shape with `success
 ### Home Stats (any authenticated user)
 - `GET /api/home-stats`
 
-## UI
+## Swagger
 
-A shared layout (`Views/Shared/_Layout.cshtml`) provides a persistent top navigation bar across all authenticated pages, with Admin-only links hidden for Staff. Login and Register pages render standalone without the navbar. The application uses a consistent green/beige design system — shared color palette, card-based layouts, pill-style buttons, avatar-initial badges, and centered forms — defined in `wwwroot/css/site.css`, `patient.css`, `login.css`, and `register.css`. The Home page features a hero section, trust/rating row, feature strip, live stats bar, and about section, all using licensed images stored under `wwwroot/assets/Images`.
-
-All forms (Login, Register, Patient, Doctor, Appointment) share a common pattern:
-- Per-field inline validation errors, displayed next to the relevant input rather than in a single shared message
-- Submit buttons disabled with a loading label while a request is in flight, preventing double-submission
-- A friendly "Could not connect to the server" message on network failure, instead of a silent failure or unhandled promise rejection
+With the project running, open `http://localhost:5100/swagger` in your browser. To test protected endpoints:
+1. Log in via `POST /api/auth/login` (either through Swagger itself or the app's login page) and copy the returned token
+2. Click the **Authorize** button (top right of the Swagger page)
+3. Paste just the token (no `Bearer` prefix — Swagger adds it automatically)
+4. Try any endpoint directly from the browser
 
 ## Testing
 
-The `HealthcareCRM.Tests` project contains 79+ xUnit tests, covering:
-- Auth: registration, duplicate email, valid/invalid login, missing-field and format validation, deactivated-account login block
-- Patients: CRUD, search, pagination, invalid IDs, deactivate/reactivate
-- Doctors: CRUD, deactivate/reactivate
-- Appointments: booking, foreign key validation, status transitions
-- Dashboard: live stat accuracy across empty and populated data sets
-- Users: list, role change (valid/invalid), toggle active/inactive, audit log entry correctness
-- Export: CSV export with/without data, PDF export with valid/invalid date ranges, unsupported format handling
-- Global exception middleware: correct status code per exception type, generic message on unhandled errors
-- RBAC: Admin-only routes correctly return 200/403/401 depending on the caller's role and token, verified via real HTTP requests against an in-process test server (`Microsoft.AspNetCore.Mvc.Testing`), not just direct controller calls
-
-Run tests with:
-```
+Run the full test suite with:
+```bash
 cd HealthcareCRM.Tests
 dotnet test
 ```
 
+The test project contains 79+ tests covering Auth, Patients, Doctors, Appointments, Dashboard, Users, Export, RBAC (verified via real HTTP requests, not just direct controller calls), and the global exception middleware.
+
+## Known Issues / Carry-Forward Items
+
+- **Pagination queries lack explicit ordering.** The Patients list query and the appointment date-range export query use `Skip`/`Take` without an `OrderBy`, which EF Core flags as a warning — results could theoretically be returned in an inconsistent order across repeated calls. Not yet fixed; low risk in current usage but worth addressing.
+- **No automatic seed data for sample Patients/Doctors/Appointments.** Only the default Admin account is auto-created. A fresh setup starts with an empty clinic dataset.
+- **Default Admin password is publicly documented in this README.** Anyone deploying this beyond local development should change it immediately after first login.
+
 ## Documentation
 
-The project includes, under `HealthcareCRM.API/Documentation/`:
+Additional documentation, under `HealthcareCRM.API/Documentation/`:
 - Entity Relationship Diagram (ERD)
-- Bug Tracking Sheet (updated through Week 4)
-- Authentication Test Cases
-- Patient CRUD Test Cases
-- Doctor CRUD Test Cases
-- Appointment Test Cases
-- Dashboard Test Cases
-- RBAC Test Cases
+- Bug Tracking Sheet
+- Authentication, Patient, Doctor, Appointment, Dashboard, and RBAC Test Cases
 
 ## Developed By
 Fizza Azhar
