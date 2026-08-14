@@ -102,7 +102,14 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    context.Database.Migrate(); // ensures database + tables exist
+
+    // Only run migrations against a real relational database (SQL Server).
+    // The test project swaps in an in-memory database, which doesn't support
+    // migrations — skip this step there so tests aren't affected.
+    if (context.Database.IsRelational())
+    {
+        context.Database.Migrate();
+    }
 
     var adminExists = context.Users.Any(u => u.Role == "Admin");
     if (!adminExists)
