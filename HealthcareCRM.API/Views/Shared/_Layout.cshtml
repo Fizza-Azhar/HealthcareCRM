@@ -29,7 +29,11 @@
         <button id="logoutBtn" class="navbar-logout">Logout</button>
     </nav>
     <div class="breadcrumb">
-    <a href="/">Home</a> / <span>@ViewData["Title"]</span>
+    <a href="/">Home</a>
+    @if (ViewData["Title"] != null && ViewData["Title"].ToString() != "Home")
+    {
+        <span> / @ViewData["Title"]</span>
+    }
 </div>
 
     <main class="page-content">

@@ -10,7 +10,7 @@
     <label id="showInactiveWrapper" style="display:none; align-items:center; gap:6px; font-size:14px;">
         <input type="checkbox" id="showInactive" /> Show inactive
     </label>
-    <a href="/Doctor/Create" class="btn-add">+ Add Doctor</a>
+    <a href="/Doctor/Create" class="btn-add" id="addDoctorBtn" style="display:none;">+ Add Doctor</a>
 </div>
 
 <div class="table-card">
@@ -41,6 +41,7 @@ const role = decoded ? decoded["http://schemas.microsoft.com/ws/2008/06/identity
 
 if (role === "Admin") {
     document.getElementById("showInactiveWrapper").style.display = "flex";
+    document.getElementById("addDoctorBtn").style.display = "inline-flex";
 }
 
 document.getElementById("showInactive")?.addEventListener("change", () => {
@@ -110,11 +111,13 @@ let allDoctors = [];
     <td><span class="tag tag-blue">${doctor.specialization}</span></td>
     <td>${doctor.phone}</td>
     <td>${doctor.scheduleDays}</td>
-    <td>
-        <a href="/Doctor/Edit?id=${doctor.id}">Edit</a>
-        ${doctor.isActive
-            ? `<button onclick="deactivateDoctor(${doctor.id})">Deactivate</button>`
-            : `<button onclick="reactivateDoctor(${doctor.id})">Reactivate</button>`}
+       <td>
+        ${role === "Admin" ? `
+            <a href="/Doctor/Edit?id=${doctor.id}">Edit</a>
+            ${doctor.isActive
+                ? `<button onclick="deactivateDoctor(${doctor.id})">Deactivate</button>`
+                : `<button onclick="reactivateDoctor(${doctor.id})">Reactivate</button>`}
+        ` : `<span style="color:#999;">—</span>`}
     </td>
 </tr>
 `;
