@@ -27,9 +27,35 @@ body {
     font-family: "Segoe UI", Arial, sans-serif;
 }
 
-h1, h2 {
+h1 {
+    font-size: 28px;
     font-weight: 700;
     letter-spacing: -0.4px;
+    margin: 0 0 8px 0;
+}
+
+h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    margin: 0 0 8px 0;
+}
+
+h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0 0 6px 0;
+}
+
+.page-subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0 0 24px 0;
+}
+
+p {
+    font-size: 15px;
+    line-height: 1.6;
 }
 
 a {
@@ -521,6 +547,6 @@ a:hover {
 }
 
 .name-cell {
-    display: flex;
-    align-items: center;
+    vertical-align: middle;
+    white-space: nowrap;
 }
